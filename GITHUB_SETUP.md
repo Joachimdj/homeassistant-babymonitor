@@ -45,14 +45,14 @@ Replace `YOUR_USERNAME` with your GitHub username.
 
 ### Via HACS (Recommended):
 1. HACS → Integrations → ⋮ → Custom repositories
-2. Add: `https://github.com/YOUR_USERNAME/homeassistant-babymonitor`
+2. Add: `https://github.com/Joachimdj/homeassistant-babymonitor`
 3. Category: Integration
 4. Install "Baby Monitor"
 
 ### Via Git Clone:
 ```bash
 cd /config/custom_components/
-git clone https://github.com/YOUR_USERNAME/homeassistant-babymonitor.git babymonitor
+git clone https://github.com/Joachimdj/homeassistant-babymonitor.git babymonitor
 ```
 
 ### Manual Download:

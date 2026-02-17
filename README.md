@@ -46,7 +46,7 @@ A comprehensive Home Assistant integration for monitoring and tracking baby care
 2. **Add this repository to HACS:**
    - Go to HACS → Integrations
    - Click the three dots menu (⋮) → Custom repositories
-   - Add repository URL: `https://github.com/joachimdittman/homeassistant-babymonitor`
+   - Add repository URL: `https://github.com/Joachimdj/homeassistant-babymonitor`
    - Category: Integration
    - Click ADD
 
@@ -65,7 +65,7 @@ A comprehensive Home Assistant integration for monitoring and tracking baby care
 1. **Clone the repository** to your Home Assistant custom_components directory:
    ```bash
    cd /config/custom_components/
-   git clone https://github.com/joachimdittman/homeassistant-babymonitor.git babymonitor
+   git clone https://github.com/Joachimdj/homeassistant-babymonitor.git babymonitor
    ```
 
 2. **Restart Home Assistant**
