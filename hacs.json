@@ -4,8 +4,5 @@
   "domains": ["babymonitor"],
   "iot_class": "Local Push",
   "homeassistant": "2023.1.0",
-  "render_readme": true,
-  "country": ["ALL"],
-  "zip_release": false,
-  "filename": false
+  "render_readme": true
 }
