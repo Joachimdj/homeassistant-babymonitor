@@ -1,8 +1,5 @@
 {
   "name": "Baby Monitor",
-  "hacs": "1.6.0",
-  "domains": ["babymonitor"],
-  "iot_class": "Local Push",
-  "homeassistant": "2023.1.0",
+  "content_in_root": true,
   "render_readme": true
 }
