@@ -50,31 +50,31 @@ The integration is configured through the UI. You can add multiple babies by add
 
 ## Entities Created
 
-For a baby named "Emma", the following entities will be created:
+For a baby named "Anika", the following entities will be created:
 
 ### Sensors
-- `sensor.emma_last_diaper_change` - Last diaper change time and details
-- `sensor.emma_last_feeding` - Last feeding time and details  
-- `sensor.emma_last_sleep` - Last sleep session details
-- `sensor.emma_total_diaper_changes` - Total diaper changes with daily breakdown
-- `sensor.emma_total_feedings` - Total feedings with daily statistics
-- `sensor.emma_total_sleep_sessions` - Total completed sleep sessions
-- `sensor.emma_average_sleep_duration` - Average sleep duration in minutes
-- `sensor.emma_average_feeding_amount` - Average feeding amount in ml
-- `sensor.emma_temperature` - Current/last recorded temperature
-- `sensor.emma_daily_summary` - Today's activity summary
-- `sensor.emma_weekly_summary` - Last 7 days activity summary
+- `sensor.anika_last_diaper_change` - Last diaper change time and details
+- `sensor.anika_last_feeding` - Last feeding time and details  
+- `sensor.anika_last_sleep` - Last sleep session details
+- `sensor.anika_total_diaper_changes` - Total diaper changes with daily breakdown
+- `sensor.anika_total_feedings` - Total feedings with daily statistics
+- `sensor.anika_total_sleep_sessions` - Total completed sleep sessions
+- `sensor.anika_average_sleep_duration` - Average sleep duration in minutes
+- `sensor.anika_average_feeding_amount` - Average feeding amount in ml
+- `sensor.anika_temperature` - Current/last recorded temperature
+- `sensor.anika_daily_summary` - Today's activity summary
+- `sensor.anika_weekly_summary` - Last 7 days activity summary
 
 ### Buttons (Quick Actions)
-- `button.emma_quick_wet_diaper` - Log wet diaper change
-- `button.emma_quick_dirty_diaper` - Log dirty diaper change
-- `button.emma_quick_wet_dirty_diaper` - Log wet & dirty diaper change
-- `button.emma_quick_bottle_feeding` - Log bottle feeding (120ml, 15min)
-- `button.emma_quick_breast_feeding_left` - Log left breast feeding (15min)
-- `button.emma_quick_breast_feeding_right` - Log right breast feeding (15min)
-- `button.emma_quick_breast_feeding_both` - Log both breasts feeding (25min)
-- `button.emma_start_sleep` - Start sleep tracking
-- `button.emma_end_sleep` - End sleep tracking with duration calculation
+- `button.anika_quick_wet_diaper` - Log wet diaper change
+- `button.anika_quick_dirty_diaper` - Log dirty diaper change
+- `button.anika_quick_wet_dirty_diaper` - Log wet & dirty diaper change
+- `button.anika_quick_bottle_feeding` - Log bottle feeding (120ml, 15min)
+- `button.anika_quick_breast_feeding_left` - Log left breast feeding (15min)
+- `button.anika_quick_breast_feeding_right` - Log right breast feeding (15min)
+- `button.anika_quick_breast_feeding_both` - Log both breasts feeding (25min)
+- `button.anika_start_sleep` - Start sleep tracking
+- `button.anika_end_sleep` - End sleep tracking with duration calculation
 
 ## Services
 
@@ -85,7 +85,7 @@ Log a diaper change with type and optional notes.
 ```yaml
 service: babymonitor.log_diaper_change
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   diaper_type: "wet"  # or "dirty" or "both"
   notes: "First change of the day"
 ```
@@ -95,7 +95,7 @@ Log a feeding session with details.
 ```yaml
 service: babymonitor.log_feeding
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   feeding_type: "bottle"  # or "breast_left", "breast_right", "breast_both", "solid"
   feeding_amount: 120  # ml (for bottle feeding)
   feeding_duration: 15  # minutes
@@ -108,14 +108,14 @@ Start or end sleep tracking.
 # Start sleep
 service: babymonitor.log_sleep
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   sleep_type: "start"
   notes: "Put down for nap"
 
 # End sleep (automatically calculates duration)
 service: babymonitor.log_sleep
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   sleep_type: "end"
   notes: "Woke up refreshed"
 ```
@@ -125,7 +125,7 @@ Record baby's temperature.
 ```yaml
 service: babymonitor.log_temperature
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   temperature: 36.5
   notes: "Measured after bath"
 ```
@@ -135,7 +135,7 @@ Record baby's weight.
 ```yaml
 service: babymonitor.log_weight
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   weight: 4.2  # kg
   notes: "Doctor visit checkup"
 ```
@@ -145,7 +145,7 @@ Record baby's height.
 ```yaml
 service: babymonitor.log_height
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   height: 52.0  # cm
   notes: "3 month checkup"
 ```
@@ -155,7 +155,7 @@ Log medication administration.
 ```yaml
 service: babymonitor.log_medication
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   medication_name: "Paracetamol"
   medication_dosage: "2.5ml"
   notes: "For fever"
@@ -166,7 +166,7 @@ Record developmental milestones.
 ```yaml
 service: babymonitor.log_milestone
 data:
-  baby_name: "Emma"
+  baby_name: "Anika"
   milestone_name: "First smile"
   notes: "Big happy smile during play time"
 ```
@@ -180,11 +180,11 @@ automation:
   - alias: "Log Diaper Change via Voice"
     trigger:
       - platform: conversation
-        command: "Log wet diaper for Emma"
+        command: "Log wet diaper for Anika"
     action:
       - service: babymonitor.log_diaper_change
         data:
-          baby_name: "Emma"
+          baby_name: "Anika"
           diaper_type: "wet"
           notes: "Logged via voice command"
 ```
@@ -197,7 +197,7 @@ automation:
     trigger:
       - platform: template
         value_template: >
-          {{ (as_timestamp(now()) - as_timestamp(states('sensor.emma_last_feeding'))) > 10800 }}
+          {{ (as_timestamp(now()) - as_timestamp(states('sensor.anika_last_feeding'))) > 10800 }}
     condition:
       - condition: time
         after: "06:00:00"
@@ -205,7 +205,7 @@ automation:
     action:
       - service: notify.mobile_app_your_phone
         data:
-          message: "It's been 3 hours since Emma's last feeding"
+          message: "It's been 3 hours since Anika's last feeding"
           title: "Feeding Reminder"
 ```
 
@@ -221,10 +221,10 @@ automation:
       - service: notify.mobile_app_your_phone
         data:
           message: >
-            Today's summary for Emma:
-            {{ state_attr('sensor.emma_daily_summary', 'diaper_changes') }} diaper changes
-            {{ state_attr('sensor.emma_daily_summary', 'feedings') }} feedings
-            {{ state_attr('sensor.emma_daily_summary', 'total_sleep_formatted') }} total sleep
+            Today's summary for Anika:
+            {{ state_attr('sensor.anika_daily_summary', 'diaper_changes') }} diaper changes
+            {{ state_attr('sensor.anika_daily_summary', 'feedings') }} feedings
+            {{ state_attr('sensor.anika_daily_summary', 'total_sleep_formatted') }} total sleep
           title: "Daily Baby Report"
 ```
 
@@ -235,15 +235,15 @@ automation:
   - alias: "Short Sleep Alert"
     trigger:
       - platform: state
-        entity_id: sensor.emma_last_sleep
+        entity_id: sensor.anika_last_sleep
     condition:
       - condition: template
         value_template: >
-          {{ state_attr('sensor.emma_last_sleep', 'duration_minutes') | int < 30 }}
+          {{ state_attr('sensor.anika_last_sleep', 'duration_minutes') | int < 30 }}
     action:
       - service: notify.mobile_app_your_phone
         data:
-          message: "Emma's last sleep was only {{ state_attr('sensor.emma_last_sleep', 'duration_formatted') }}"
+          message: "Anika's last sleep was only {{ state_attr('sensor.anika_last_sleep', 'duration_formatted') }}"
           title: "Short Sleep Alert"
 ```
 
@@ -262,34 +262,34 @@ The data persists across Home Assistant restarts and can be used with the built-
 ### Quick Actions Card
 ```yaml
 type: entities
-title: Emma - Quick Actions
+title: Anika - Quick Actions
 entities:
-  - button.emma_quick_wet_diaper
-  - button.emma_quick_dirty_diaper  
-  - button.emma_quick_bottle_feeding
-  - button.emma_quick_breast_feeding_both
-  - button.emma_start_sleep
-  - button.emma_end_sleep
+  - button.anika_quick_wet_diaper
+  - button.anika_quick_dirty_diaper  
+  - button.anika_quick_bottle_feeding
+  - button.anika_quick_breast_feeding_both
+  - button.anika_start_sleep
+  - button.anika_end_sleep
 ```
 
 ### Summary Card
 ```yaml
 type: entities
-title: Emma - Current Status
+title: Anika - Current Status
 entities:
-  - sensor.emma_last_diaper_change
-  - sensor.emma_last_feeding
-  - sensor.emma_last_sleep
-  - sensor.emma_temperature
-  - sensor.emma_daily_summary
+  - sensor.anika_last_diaper_change
+  - sensor.anika_last_feeding
+  - sensor.anika_last_sleep
+  - sensor.anika_temperature
+  - sensor.anika_daily_summary
 ```
 
 ### Statistics Card
 ```yaml
 type: statistics-graph
-title: Emma - Feeding Amounts
+title: Anika - Feeding Amounts
 entities:
-  - sensor.emma_average_feeding_amount
+  - sensor.anika_average_feeding_amount
 period: day
 days_to_show: 7
 ```
