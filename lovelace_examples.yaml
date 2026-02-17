@@ -88,7 +88,7 @@ views:
       - type: statistics-graph
         title: Feeding Amounts (Last 7 Days)
         entities:
-          - sensor.emma_average_feeding_amount
+          - sensor.anika_average_feeding_amount
         period: day
         days_to_show: 7
         stat_types:
@@ -99,7 +99,7 @@ views:
       - type: statistics-graph
         title: Sleep Duration (Last 7 Days)
         entities:
-          - sensor.emma_average_sleep_duration
+          - sensor.anika_average_sleep_duration
         period: day
         days_to_show: 7
         stat_types:
@@ -120,23 +120,23 @@ views:
         show_header_toggle: false
         entities:
           - type: attribute
-            entity: sensor.emma_weekly_summary
+            entity: sensor.anika_weekly_summary
             attribute: total_diaper_changes
             name: Total Diaper Changes (7d)
           - type: attribute
-            entity: sensor.emma_weekly_summary
+            entity: sensor.anika_weekly_summary
             attribute: total_feedings
             name: Total Feedings (7d)
           - type: attribute
-            entity: sensor.emma_weekly_summary
+            entity: sensor.anika_weekly_summary
             attribute: avg_diapers_per_day
             name: Avg Diapers/Day
           - type: attribute
-            entity: sensor.emma_weekly_summary
+            entity: sensor.anika_weekly_summary
             attribute: avg_feedings_per_day
             name: Avg Feedings/Day
           - type: attribute
-            entity: sensor.emma_weekly_summary
+            entity: sensor.anika_weekly_summary
             attribute: avg_sleep_per_day_formatted
             name: Avg Sleep/Day
 
@@ -147,7 +147,7 @@ views:
         title: 🌡️ Health Monitoring
         show_header_toggle: false
         entities:
-          - sensor.emma_temperature
+          - sensor.anika_temperature
 
       - type: markdown
         content: |
@@ -166,7 +166,7 @@ views:
           action: call-service
           service: babymonitor.log_temperature
           data:
-            baby_name: Emma
+            baby_name: Anika
           target: {}
 
   - title: Manual Logging
@@ -183,7 +183,7 @@ views:
           action: call-service
           service: babymonitor.log_diaper_change
           data:
-            baby_name: Emma
+            baby_name: Anika
             diaper_type: wet
             notes: "Manual log"
           target: {}
@@ -194,7 +194,7 @@ views:
           action: call-service
           service: babymonitor.log_feeding
           data:
-            baby_name: Emma
+            baby_name: Anika
             feeding_type: bottle
             feeding_amount: 150
             feeding_duration: 20
@@ -207,7 +207,7 @@ views:
           action: call-service
           service: babymonitor.log_milestone
           data:
-            baby_name: Emma
+            baby_name: Anika
             milestone_name: "First laugh"
             notes: "Such a beautiful sound!"
           target: {}
@@ -216,7 +216,7 @@ views:
 ## Compact Mobile Dashboard
 
 ```yaml
-title: Emma - Mobile
+title: Anika - Mobile
 views:
   - title: Quick
     path: mobile-quick
@@ -226,42 +226,42 @@ views:
         columns: 2
         cards:
           - type: button
-            entity: button.emma_quick_wet_diaper
+            entity: button.anika_quick_wet_diaper
             name: Wet
             icon: mdi:water
             tap_action:
               action: toggle
 
           - type: button
-            entity: button.emma_quick_dirty_diaper
+            entity: button.anika_quick_dirty_diaper
             name: Dirty
             icon: mdi:delete-variant
             tap_action:
               action: toggle
 
           - type: button
-            entity: button.emma_quick_bottle_feeding
+            entity: button.anika_quick_bottle_feeding
             name: Bottle
             icon: mdi:bottle-tonic-skull
             tap_action:
               action: toggle
 
           - type: button
-            entity: button.emma_quick_breast_feeding_both
+            entity: button.anika_quick_breast_feeding_both
             name: Breast
             icon: mdi:human-female
             tap_action:
               action: toggle
 
           - type: button
-            entity: button.emma_start_sleep
+            entity: button.anika_start_sleep
             name: Sleep Start
             icon: mdi:sleep
             tap_action:
               action: toggle
 
           - type: button
-            entity: button.emma_end_sleep
+            entity: button.anika_end_sleep
             name: Sleep End
             icon: mdi:sleep-off
             tap_action:
@@ -270,16 +270,16 @@ views:
       - type: entities
         title: Status
         entities:
-          - sensor.emma_last_diaper_change
-          - sensor.emma_last_feeding
-          - sensor.emma_last_sleep
-          - sensor.emma_daily_summary
+          - sensor.anika_last_diaper_change
+          - sensor.anika_last_feeding
+          - sensor.anika_last_sleep
+          - sensor.anika_daily_summary
 ```
 
 ## Picture Elements Dashboard (with baby photo)
 
 ```yaml
-title: Emma's Room
+title: Anika's Room
 views:
   - title: Visual
     path: visual
@@ -290,7 +290,7 @@ views:
         elements:
           # Quick action buttons overlaid on image
           - type: state-icon
-            entity: button.emma_quick_wet_diaper
+            entity: button.anika_quick_wet_diaper
             style:
               top: 20%
               left: 20%
@@ -299,7 +299,7 @@ views:
               action: toggle
 
           - type: state-icon
-            entity: button.emma_quick_dirty_diaper
+            entity: button.anika_quick_dirty_diaper
             style:
               top: 20%
               left: 40%
@@ -308,7 +308,7 @@ views:
               action: toggle
 
           - type: state-icon
-            entity: button.emma_quick_bottle_feeding
+            entity: button.anika_quick_bottle_feeding
             style:
               top: 40%
               left: 20%
@@ -317,7 +317,7 @@ views:
               action: toggle
 
           - type: state-icon
-            entity: button.emma_start_sleep
+            entity: button.anika_start_sleep
             style:
               top: 40%
               left: 40%
@@ -327,7 +327,7 @@ views:
 
           # Status display
           - type: state-label
-            entity: sensor.emma_last_feeding
+            entity: sensor.anika_last_feeding
             attribute: time_ago
             prefix: "Last fed: "
             style:
@@ -340,7 +340,7 @@ views:
               border-radius: 4px
 
           - type: state-label
-            entity: sensor.emma_last_diaper_change
+            entity: sensor.anika_last_diaper_change
             attribute: time_ago
             prefix: "Last changed: "
             style:
@@ -356,7 +356,7 @@ views:
 ## Chart Dashboard
 
 ```yaml
-title: Emma - Analytics
+title: Anika - Analytics
 views:
   - title: Charts
     path: charts
@@ -365,28 +365,28 @@ views:
         title: Activity Timeline (24h)
         hours_to_show: 24
         entities:
-          - sensor.emma_last_diaper_change
-          - sensor.emma_last_feeding
-          - sensor.emma_last_sleep
+          - sensor.anika_last_diaper_change
+          - sensor.anika_last_feeding
+          - sensor.anika_last_sleep
 
       - type: statistics-graph
         title: Daily Feeding Amounts
         entities:
-          - sensor.emma_average_feeding_amount
+          - sensor.anika_average_feeding_amount
         period: day
         days_to_show: 14
 
       - type: statistics-graph
         title: Sleep Patterns
         entities:
-          - sensor.emma_average_sleep_duration
+          - sensor.anika_average_sleep_duration
         period: day
         days_to_show: 14
 
       - type: custom:mini-graph-card
         name: Temperature Trend
         entities:
-          - entity: sensor.emma_temperature
+          - entity: sensor.anika_temperature
         hours_to_show: 168  # 1 week
         points_per_hour: 0.25
         line_color: orange
@@ -401,7 +401,7 @@ views:
 3. Click the three dots menu → "Edit Dashboard"
 4. Click "Raw configuration editor"
 5. Paste the configuration
-6. Replace "Emma" with your baby's name if different
+6. Replace "Anika" with your baby's name if different
 7. Save the configuration
 
 ## Customization Tips
