@@ -90,6 +90,7 @@ class LastDiaperChangeSensor(BabyMonitorSensorBase):
     
     _sensor_name = "Last Diaper Change"
     _sensor_id = "last_diaper_change"
+    _attr_icon = "mdi:baby-bottle"
     
     @property
     def state(self) -> str | None:
