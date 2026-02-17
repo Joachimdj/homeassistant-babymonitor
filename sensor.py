@@ -45,6 +45,19 @@ async def async_setup_entry(
         DailySummaryDisplaySensor(baby_name, storage),
         WeeklySummaryDisplaySensor(baby_name, storage),
         CurrentTemperatureSensor(baby_name, storage),
+        LastBathSensor(baby_name, storage),
+        TummyTimeTodaySensor(baby_name, storage),
+        SleepQualityScoreSensor(baby_name, storage),
+        GrowthPercentileSensor(baby_name, storage),
+        NextFeedingPredictionSensor(baby_name, storage),
+        MoodAnalysisSensor(baby_name, storage),
+        CryingAnalysisSensor(baby_name, storage),
+        EnvironmentalConditionsSensor(baby_name, storage),
+        CurrentCaregiverSensor(baby_name, storage),
+        GrowthVelocitySensor(baby_name, storage),
+        SleepRegressionIndicatorSensor(baby_name, storage),
+        DiaperChangeFrequencySensor(baby_name, storage),
+        FeedingEfficiencySensor(baby_name, storage),
     ]
     
     async_add_entities(sensors, True)
@@ -468,4 +481,644 @@ class WeeklySummaryDisplaySensor(BabyMonitorSensorBase):
             "avg_feedings_per_day": round(avg_feedings_per_day, 1),
             "avg_sleep_minutes_per_day": round(avg_sleep_per_day, 1),
             "avg_sleep_per_day_formatted": f"{int(avg_sleep_per_day // 60)}h {int(avg_sleep_per_day % 60)}m"
+        }
+
+
+class LastBathSensor(BabyMonitorSensorBase):
+    """Sensor for last bath time."""
+    
+    _sensor_name = "Last Bath"
+    
+    @property
+    def native_value(self) -> str | None:
+        activities = self._storage.get_activities_by_type("bath")
+        if not activities:
+            return "Never"
+        
+        last_activity = activities[-1]
+        last_time = datetime.fromisoformat(last_activity["timestamp"])
+        return last_time.strftime("%Y-%m-%d %H:%M")
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        activities = self._storage.get_activities_by_type("bath")
+        if not activities:
+            return {}
+        
+        last_activity = activities[-1]
+        last_time = datetime.fromisoformat(last_activity["timestamp"])
+        time_since = datetime.now() - last_time
+        
+        return {
+            "timestamp": last_activity["timestamp"],
+            "bath_type": last_activity["data"].get("bath_type", "full_bath"),
+            "hours_since": round(time_since.total_seconds() / 3600, 1),
+            "days_since": round(time_since.days, 1),
+            "notes": last_activity["data"].get("notes", "")
+        }
+
+
+class TummyTimeTodaySensor(BabyMonitorSensorBase):
+    """Sensor for today's tummy time duration."""
+    
+    _sensor_name = "Tummy Time Today"
+    _attr_unit_of_measurement = "min"
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    
+    @property
+    def native_value(self) -> int:
+        today_activities = self._storage.get_daily_activities()
+        tummy_time_activities = [a for a in today_activities if a["type"] == "tummy_time"]
+        total_minutes = sum(a["data"].get("duration", 0) for a in tummy_time_activities)
+        return total_minutes
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        today_activities = self._storage.get_daily_activities()
+        tummy_time_activities = [a for a in today_activities if a["type"] == "tummy_time"]
+        
+        return {
+            "sessions_today": len(tummy_time_activities),
+            "recommended_daily_minutes": 15,  # Typical recommendation
+            "progress_percentage": min(100, (self.native_value / 15) * 100) if self.native_value else 0
+        }
+
+
+class SleepQualityScoreSensor(BabyMonitorSensorBase):
+    """Sensor for sleep quality analysis."""
+    
+    _sensor_name = "Sleep Quality Score"
+    _attr_unit_of_measurement = "%"
+    
+    @property
+    def native_value(self) -> int:
+        """Calculate sleep quality score based on recent patterns."""
+        recent_activities = self._storage.get_activities_since_days(3)
+        sleep_activities = [a for a in recent_activities if a["type"] == ACTIVITY_SLEEP]
+        
+        if len(sleep_activities) < 4:  # Need some data
+            return 50
+        
+        # Analyze sleep sessions (pairs of start/end)
+        sleep_sessions = []
+        start_activity = None
+        
+        for activity in sleep_activities:
+            if activity["data"].get("sleep_type") == "start":
+                start_activity = activity
+            elif activity["data"].get("sleep_type") == "end" and start_activity:
+                duration = activity["data"].get("duration", 0)
+                sleep_sessions.append({
+                    "duration": duration,
+                    "start_time": start_activity["timestamp"],
+                    "end_time": activity["timestamp"]
+                })
+                start_activity = None
+        
+        if not sleep_sessions:
+            return 50
+        
+        # Calculate quality factors
+        avg_duration = sum(s["duration"] for s in sleep_sessions) / len(sleep_sessions)
+        
+        # Quality factors (0-100 each)
+        duration_score = min(100, (avg_duration / 60) * 100)  # 60 min = perfect
+        consistency_score = max(0, 100 - (len(sleep_sessions) - 6) * 10)  # 6 sessions ideal
+        
+        overall_score = (duration_score * 0.6 + consistency_score * 0.4)
+        return round(overall_score)
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        recent_activities = self._storage.get_activities_since_days(3)
+        sleep_activities = [a for a in recent_activities if a["type"] == ACTIVITY_SLEEP]
+        
+        # Calculate sessions
+        sleep_sessions = []
+        start_activity = None
+        
+        for activity in sleep_activities:
+            if activity["data"].get("sleep_type") == "start":
+                start_activity = activity
+            elif activity["data"].get("sleep_type") == "end" and start_activity:
+                duration = activity["data"].get("duration", 0)
+                sleep_sessions.append(duration)
+                start_activity = None
+        
+        if not sleep_sessions:
+            return {"analysis": "Insufficient data"}
+        
+        avg_duration = sum(sleep_sessions) / len(sleep_sessions)
+        longest_session = max(sleep_sessions)
+        
+        return {
+            "average_session_duration": f"{int(avg_duration)}min",
+            "longest_session": f"{int(longest_session)}min",
+            "sessions_in_3_days": len(sleep_sessions),
+            "analysis_period": "3 days"
+        }
+
+
+class GrowthPercentileSensor(BabyMonitorSensorBase):
+    """Sensor for growth percentile tracking."""
+    
+    _sensor_name = "Growth Percentile"
+    _attr_unit_of_measurement = "%"
+    
+    @property
+    def native_value(self) -> int | None:
+        """Calculate approximate growth percentile."""
+        weight_activities = self._storage.get_activities_by_type("weight")
+        height_activities = self._storage.get_activities_by_type("height")
+        
+        if not weight_activities or not height_activities:
+            return None
+        
+        # Get latest measurements
+        latest_weight = weight_activities[-1]["data"].get("weight", 0)
+        latest_height = height_activities[-1]["data"].get("height", 0)
+        
+        # Simplified percentile calculation (would need proper WHO charts in real implementation)
+        # This is a mock calculation for demo purposes
+        if latest_weight > 0 and latest_height > 0:
+            # Mock percentile based on ratio (simplified)
+            ratio = latest_weight / (latest_height / 100) ** 2  # Simple BMI-like calculation
+            if ratio < 12:
+                return 10
+            elif ratio < 14:
+                return 25
+            elif ratio < 16:
+                return 50
+            elif ratio < 18:
+                return 75
+            else:
+                return 90
+        
+        return 50  # Default middle percentile
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        weight_activities = self._storage.get_activities_by_type("weight")
+        height_activities = self._storage.get_activities_by_type("height")
+        
+        latest_weight = weight_activities[-1]["data"].get("weight", 0) if weight_activities else 0
+        latest_height = height_activities[-1]["data"].get("height", 0) if height_activities else 0
+        
+        return {
+            "latest_weight_kg": latest_weight,
+            "latest_height_cm": latest_height,
+            "chart_reference": "WHO Growth Standards",
+            "note": "Consult pediatrician for official growth assessment"
+        }
+
+
+class NextFeedingPredictionSensor(BabyMonitorSensorBase):
+    """Sensor for predicting next feeding time."""
+    
+    _sensor_name = "Next Feeding Prediction"
+    
+    @property
+    def native_value(self) -> str:
+        """Predict next feeding time based on recent patterns."""
+        feeding_activities = self._storage.get_activities_by_type(ACTIVITY_FEEDING)
+        
+        if len(feeding_activities) < 3:
+            return "Insufficient data"
+        
+        # Get last 5 feeding times
+        recent_feedings = feeding_activities[-5:]
+        intervals = []
+        
+        for i in range(1, len(recent_feedings)):
+            prev_time = datetime.fromisoformat(recent_feedings[i-1]["timestamp"])
+            curr_time = datetime.fromisoformat(recent_feedings[i]["timestamp"])
+            interval_hours = (curr_time - prev_time).total_seconds() / 3600
+            intervals.append(interval_hours)
+        
+        if not intervals:
+            return "Insufficient data"
+        
+        # Calculate average interval
+        avg_interval = sum(intervals) / len(intervals)
+        
+        # Predict next feeding
+        last_feeding_time = datetime.fromisoformat(feeding_activities[-1]["timestamp"])
+        predicted_next = last_feeding_time + timedelta(hours=avg_interval)
+        
+        if predicted_next < datetime.now():
+            return "Due now"
+        
+        return predicted_next.strftime("%H:%M")
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        feeding_activities = self._storage.get_activities_by_type(ACTIVITY_FEEDING)
+        
+        if len(feeding_activities) < 3:
+            return {"status": "Need more feeding data"}
+        
+        # Calculate intervals
+        recent_feedings = feeding_activities[-5:]
+        intervals = []
+        
+        for i in range(1, len(recent_feedings)):
+            prev_time = datetime.fromisoformat(recent_feedings[i-1]["timestamp"])
+            curr_time = datetime.fromisoformat(recent_feedings[i]["timestamp"])
+            interval_hours = (curr_time - prev_time).total_seconds() / 3600
+            intervals.append(interval_hours)
+        
+        avg_interval = sum(intervals) / len(intervals) if intervals else 3
+        last_feeding = datetime.fromisoformat(feeding_activities[-1]["timestamp"])
+        time_since_last = (datetime.now() - last_feeding).total_seconds() / 3600
+        
+        return {
+            "average_interval_hours": round(avg_interval, 1),
+            "hours_since_last_feeding": round(time_since_last, 1),
+            "pattern_confidence": "High" if len(intervals) >= 4 else "Medium",
+            "last_feeding": last_feeding.strftime("%H:%M")
+        }
+
+
+class MoodAnalysisSensor(BabyMonitorSensorBase):
+    """Sensor for mood pattern analysis."""
+    
+    _sensor_name = "Current Mood"
+    
+    @property
+    def native_value(self) -> str:
+        """Get current/latest mood."""
+        mood_activities = self._storage.get_activities_by_type("mood")
+        
+        if not mood_activities:
+            return "Unknown"
+        
+        latest_mood = mood_activities[-1]["data"].get("mood_type", "Unknown")
+        return latest_mood.title()
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        today_moods = [a for a in self._storage.get_daily_activities() if a["type"] == "mood"]
+        week_moods = [a for a in self._storage.get_activities_since_days(7) if a["type"] == "mood"]
+        
+        if not today_moods:
+            return {"analysis": "No mood data today"}
+        
+        # Count mood types today
+        mood_counts = {}
+        for mood in today_moods:
+            mood_type = mood["data"].get("mood_type", "unknown")
+            mood_counts[mood_type] = mood_counts.get(mood_type, 0) + 1
+        
+        dominant_mood = max(mood_counts, key=mood_counts.get) if mood_counts else "unknown"
+        
+        return {
+            "dominant_mood_today": dominant_mood.title(),
+            "mood_changes_today": len(today_moods),
+            "mood_counts_today": mood_counts,
+            "mood_stability": "Stable" if len(today_moods) <= 3 else "Variable"
+        }
+
+
+class CryingAnalysisSensor(BabyMonitorSensorBase):
+    """Sensor for crying pattern analysis."""
+    
+    _sensor_name = "Crying Analysis"
+    
+    @property
+    def native_value(self) -> str:
+        """Get crying status summary."""
+        today_crying = [a for a in self._storage.get_daily_activities() if a["type"] == "crying"]
+        
+        if not today_crying:
+            return "No crying recorded"
+        
+        total_duration = sum(a["data"].get("duration", 0) for a in today_crying)
+        episodes = len(today_crying)
+        
+        if episodes == 0:
+            return "Peaceful day"
+        elif episodes <= 2 and total_duration <= 30:
+            return "Minimal crying"
+        elif episodes <= 5 and total_duration <= 60:
+            return "Normal fussiness"
+        else:
+            return "Fussy day"
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        today_crying = [a for a in self._storage.get_daily_activities() if a["type"] == "crying"]
+        
+        if not today_crying:
+            return {"status": "No crying episodes today"}
+        
+        total_duration = sum(a["data"].get("duration", 0) for a in today_crying)
+        intensities = [a["data"].get("crying_intensity", "moderate") for a in today_crying]
+        intensity_counts = {}
+        
+        for intensity in intensities:
+            intensity_counts[intensity] = intensity_counts.get(intensity, 0) + 1
+        
+        return {
+            "episodes_today": len(today_crying),
+            "total_duration_minutes": total_duration,
+            "average_episode_duration": round(total_duration / len(today_crying), 1) if today_crying else 0,
+            "intensity_breakdown": intensity_counts,
+            "last_episode": today_crying[-1]["timestamp"] if today_crying else None
+        }
+
+
+class EnvironmentalConditionsSensor(BabyMonitorSensorBase):
+    """Sensor for environmental monitoring."""
+    
+    _sensor_name = "Room Conditions"
+    
+    @property
+    def native_value(self) -> str:
+        """Get latest environmental conditions."""
+        env_activities = self._storage.get_activities_by_type("environmental")
+        
+        if not env_activities:
+            return "Not monitored"
+        
+        latest = env_activities[-1]["data"]
+        temp = latest.get("room_temperature", 0)
+        humidity = latest.get("humidity", 0)
+        
+        if temp > 0:
+            return f"{temp}°C, {humidity}%"
+        
+        return "No recent data"
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        env_activities = self._storage.get_activities_by_type("environmental")
+        
+        if not env_activities:
+            return {"status": "Environmental monitoring not active"}
+        
+        latest = env_activities[-1]["data"]
+        temp = latest.get("room_temperature", 0)
+        humidity = latest.get("humidity", 0)
+        
+        # Assess conditions
+        temp_status = "optimal" if 18 <= temp <= 22 else ("too_warm" if temp > 22 else "too_cool")
+        humidity_status = "optimal" if 30 <= humidity <= 60 else ("too_humid" if humidity > 60 else "too_dry")
+        
+        return {
+            "room_temperature": temp,
+            "humidity": humidity,
+            "temperature_status": temp_status,
+            "humidity_status": humidity_status,
+            "overall_comfort": "Good" if temp_status == "optimal" and humidity_status == "optimal" else "Needs attention",
+            "last_update": env_activities[-1]["timestamp"]
+        }
+
+
+class CurrentCaregiverSensor(BabyMonitorSensorBase):
+    """Sensor for tracking current caregiver."""
+    
+    _sensor_name = "Current Caregiver"
+    
+    @property
+    def native_value(self) -> str:
+        """Get current caregiver on duty."""
+        caregiver_activities = self._storage.get_activities_by_type("caregiver")
+        
+        if not caregiver_activities:
+            return "Unknown"
+        
+        latest = caregiver_activities[-1]["data"]
+        return latest.get("caregiver_name", "Unknown")
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        caregiver_activities = self._storage.get_activities_by_type("caregiver")
+        today_activities = self._storage.get_daily_activities()
+        
+        if not caregiver_activities:
+            return {"status": "Caregiver tracking not active"}
+        
+        # Count activities by caregiver today
+        caregiver_stats = {}
+        for activity in today_activities:
+            if activity["type"] in [ACTIVITY_DIAPER_CHANGE, ACTIVITY_FEEDING]:
+                caregiver = "Unknown"  # Would need to track this in activity data
+                caregiver_stats[caregiver] = caregiver_stats.get(caregiver, 0) + 1
+        
+        latest_change = datetime.fromisoformat(caregiver_activities[-1]["timestamp"])
+        duration = datetime.now() - latest_change
+        
+        return {
+            "on_duty_since": caregiver_activities[-1]["timestamp"],
+            "duration_hours": round(duration.total_seconds() / 3600, 1),
+            "shift_changes_today": len([a for a in today_activities if a["type"] == "caregiver"])
+        }
+
+
+class GrowthVelocitySensor(BabyMonitorSensorBase):
+    """Sensor for growth velocity tracking."""
+    
+    _sensor_name = "Growth Velocity"
+    _attr_unit_of_measurement = "g/day"
+    
+    @property
+    def native_value(self) -> float | None:
+        """Calculate daily weight gain velocity."""
+        weight_activities = self._storage.get_activities_by_type("weight")
+        
+        if len(weight_activities) < 2:
+            return None
+        
+        # Get last two measurements
+        latest = weight_activities[-1]
+        previous = weight_activities[-2]
+        
+        latest_weight = latest["data"].get("weight", 0) * 1000  # Convert to grams
+        previous_weight = previous["data"].get("weight", 0) * 1000
+        
+        latest_time = datetime.fromisoformat(latest["timestamp"])
+        previous_time = datetime.fromisoformat(previous["timestamp"])
+        
+        days_diff = (latest_time - previous_time).total_seconds() / (24 * 3600)
+        
+        if days_diff > 0:
+            velocity = (latest_weight - previous_weight) / days_diff
+            return round(velocity, 1)
+        
+        return None
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        weight_activities = self._storage.get_activities_by_type("weight")
+        
+        if len(weight_activities) < 2:
+            return {"status": "Need more weight measurements"}
+        
+        velocity = self.native_value
+        
+        # Typical growth ranges for reference
+        if velocity and velocity > 0:
+            if 15 <= velocity <= 30:
+                growth_assessment = "Normal"
+            elif velocity > 30:
+                growth_assessment = "Rapid"
+            else:
+                growth_assessment = "Slow"
+        else:
+            growth_assessment = "Concerning"
+        
+        return {
+            "growth_assessment": growth_assessment,
+            "measurement_count": len(weight_activities),
+            "latest_weight_kg": weight_activities[-1]["data"].get("weight", 0),
+            "normal_range": "15-30 g/day",
+            "note": "Consult pediatrician for growth concerns"
+        }
+
+
+class SleepRegressionIndicatorSensor(BabyMonitorSensorBase):
+    """Sensor for detecting sleep pattern disruptions."""
+    
+    _sensor_name = "Sleep Pattern Status"
+    
+    @property
+    def native_value(self) -> str:
+        """Analyze recent sleep patterns for regression indicators."""
+        recent_activities = self._storage.get_activities_since_days(7)
+        older_activities = self._storage.get_activities_since_days(14)
+        
+        recent_sleep = [a for a in recent_activities if a["type"] == ACTIVITY_SLEEP and a["data"].get("sleep_type") == "end"]
+        older_sleep = [a for a in older_activities[-14:-7] if a["type"] == ACTIVITY_SLEEP and a["data"].get("sleep_type") == "end"]
+        
+        if len(recent_sleep) < 3 or len(older_sleep) < 3:
+            return "Insufficient data"
+        
+        # Compare average sleep duration
+        recent_avg = sum(s["data"].get("duration", 0) for s in recent_sleep) / len(recent_sleep)
+        older_avg = sum(s["data"].get("duration", 0) for s in older_sleep) / len(older_sleep)
+        
+        # Check for significant decrease in sleep duration
+        decrease_percentage = ((older_avg - recent_avg) / older_avg) * 100 if older_avg > 0 else 0
+        
+        if decrease_percentage > 25:
+            return "Sleep Regression Detected"
+        elif decrease_percentage > 15:
+            return "Sleep Pattern Disruption"
+        elif decrease_percentage < -10:
+            return "Sleep Improvement"
+        else:
+            return "Normal Pattern"
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        recent_activities = self._storage.get_activities_since_days(7)
+        recent_sleep = [a for a in recent_activities if a["type"] == ACTIVITY_SLEEP and a["data"].get("sleep_type") == "end"]
+        
+        if not recent_sleep:
+            return {"analysis": "No recent sleep data"}
+        
+        recent_avg = sum(s["data"].get("duration", 0) for s in recent_sleep) / len(recent_sleep)
+        night_wakings = len([s for s in recent_sleep if s["data"].get("duration", 0) < 60])  # Short sleeps indicate wakings
+        
+        return {
+            "recent_average_duration": f"{int(recent_avg)}min",
+            "sleep_sessions_this_week": len(recent_sleep),
+            "short_sleeps_this_week": night_wakings,
+            "pattern_stability": "Stable" if night_wakings <= 7 else "Unstable",
+            "analysis_period": "7 days vs previous 7 days"
+        }
+
+
+class DiaperChangeFrequencySensor(BabyMonitorSensorBase):
+    """Sensor for diaper change frequency analysis."""
+    
+    _sensor_name = "Diaper Change Frequency"
+    _attr_unit_of_measurement = "changes/day"
+    
+    @property
+    def native_value(self) -> float:
+        """Calculate average diaper changes per day."""
+        week_activities = self._storage.get_activities_since_days(7)
+        diaper_changes = [a for a in week_activities if a["type"] == ACTIVITY_DIAPER_CHANGE]
+        
+        return round(len(diaper_changes) / 7, 1)
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        today_activities = self._storage.get_daily_activities()
+        week_activities = self._storage.get_activities_since_days(7)
+        
+        today_changes = [a for a in today_activities if a["type"] == ACTIVITY_DIAPER_CHANGE]
+        week_changes = [a for a in week_activities if a["type"] == ACTIVITY_DIAPER_CHANGE]
+        
+        # Analyze types
+        wet_changes = len([a for a in week_changes if a["data"].get("diaper_type") in ["wet", "both"]])
+        dirty_changes = len([a for a in week_changes if a["data"].get("diaper_type") in ["dirty", "both"]])
+        
+        return {
+            "changes_today": len(today_changes),
+            "changes_this_week": len(week_changes),
+            "wet_changes_week": wet_changes,
+            "dirty_changes_week": dirty_changes,
+            "frequency_status": "Normal" if 4 <= self.native_value <= 12 else ("Low" if self.native_value < 4 else "High"),
+            "normal_range": "4-12 changes per day"
+        }
+
+
+class FeedingEfficiencySensor(BabyMonitorSensorBase):
+    """Sensor for feeding efficiency analysis."""
+    
+    _sensor_name = "Feeding Efficiency"
+    _attr_unit_of_measurement = "ml/min"
+    
+    @property
+    def native_value(self) -> float | None:
+        """Calculate average feeding efficiency."""
+        feeding_activities = self._storage.get_activities_by_type(ACTIVITY_FEEDING)
+        
+        # Only consider bottle feedings with amount and duration
+        bottle_feedings = []
+        for feeding in feeding_activities:
+            if (feeding["data"].get("feeding_type") == "bottle" and 
+                feeding["data"].get("feeding_amount", 0) > 0 and 
+                feeding["data"].get("feeding_duration", 0) > 0):
+                
+                amount = feeding["data"]["feeding_amount"]
+                duration = feeding["data"]["feeding_duration"]
+                efficiency = amount / duration
+                bottle_feedings.append(efficiency)
+        
+        if not bottle_feedings:
+            return None
+        
+        return round(sum(bottle_feedings) / len(bottle_feedings), 1)
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        feeding_activities = self._storage.get_activities_by_type(ACTIVITY_FEEDING)
+        
+        bottle_feedings = []
+        breast_feedings = 0
+        
+        for feeding in feeding_activities:
+            if feeding["data"].get("feeding_type") == "bottle":
+                if (feeding["data"].get("feeding_amount", 0) > 0 and 
+                    feeding["data"].get("feeding_duration", 0) > 0):
+                    bottle_feedings.append(feeding)
+            elif "breast" in feeding["data"].get("feeding_type", ""):
+                breast_feedings += 1
+        
+        if not bottle_feedings:
+            return {"status": "No bottle feeding data with duration"}
+        
+        total_amount = sum(f["data"]["feeding_amount"] for f in bottle_feedings)
+        total_duration = sum(f["data"]["feeding_duration"] for f in bottle_feedings)
+        
+        return {
+            "bottle_feedings_analyzed": len(bottle_feedings),
+            "breast_feedings": breast_feedings,
+            "total_bottle_amount_ml": total_amount,
+            "total_bottle_duration_min": total_duration,
+            "efficiency_trend": "Improving" if self.native_value and self.native_value > 5 else "Normal",
+            "analysis_note": "Based on bottle feedings only"
         }

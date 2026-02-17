@@ -15,6 +15,12 @@ ACTIVITY_WEIGHT = "weight"
 ACTIVITY_HEIGHT = "height"
 ACTIVITY_MEDICATION = "medication"
 ACTIVITY_MILESTONE = "milestone"
+ACTIVITY_BATH = "bath"
+ACTIVITY_TUMMY_TIME = "tummy_time"
+ACTIVITY_CRYING = "crying"
+ACTIVITY_MOOD = "mood"
+ACTIVITY_ENVIRONMENTAL = "environmental"
+ACTIVITY_CAREGIVER = "caregiver"
 
 # Diaper change types
 DIAPER_WET = "wet"
@@ -41,6 +47,12 @@ SERVICE_LOG_WEIGHT = "log_weight"
 SERVICE_LOG_HEIGHT = "log_height"
 SERVICE_LOG_MEDICATION = "log_medication"
 SERVICE_LOG_MILESTONE = "log_milestone"
+SERVICE_LOG_BATH = "log_bath"
+SERVICE_LOG_TUMMY_TIME = "log_tummy_time"
+SERVICE_LOG_CRYING = "log_crying"
+SERVICE_LOG_MOOD = "log_mood"
+SERVICE_LOG_ENVIRONMENTAL = "log_environmental"
+SERVICE_LOG_CAREGIVER = "log_caregiver"
 
 # Attributes
 ATTR_BABY_NAME = "baby_name"
@@ -57,3 +69,27 @@ ATTR_MEDICATION_DOSAGE = "medication_dosage"
 ATTR_MILESTONE_NAME = "milestone_name"
 ATTR_NOTES = "notes"
 ATTR_TIMESTAMP = "timestamp"
+ATTR_DURATION = "duration"
+ATTR_CRYING_INTENSITY = "crying_intensity"
+ATTR_MOOD_TYPE = "mood_type"
+ATTR_ROOM_TEMPERATURE = "room_temperature"
+ATTR_HUMIDITY = "humidity"
+ATTR_CAREGIVER_NAME = "caregiver_name"
+ATTR_BATH_TYPE = "bath_type"
+
+# Mood types
+MOOD_HAPPY = "happy"
+MOOD_FUSSY = "fussy"
+MOOD_CALM = "calm"
+MOOD_SLEEPY = "sleepy"
+MOOD_ALERT = "alert"
+
+# Crying intensity levels
+CRYING_LIGHT = "light"
+CRYING_MODERATE = "moderate"
+CRYING_INTENSE = "intense"
+
+# Bath types
+BATH_FULL = "full_bath"
+BATH_SPONGE = "sponge_bath"
+BATH_HAIR_WASH = "hair_wash"

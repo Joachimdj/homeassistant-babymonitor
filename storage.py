@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -137,3 +137,18 @@ class BabyMonitorStorage:
         activities = self._data["activities"].copy()
         activities.sort(key=lambda x: x["timestamp"], reverse=True)
         return activities[:limit]
+    
+    def get_activities_since_days(self, days: int) -> list[dict]:
+        """Get activities from the last N days."""
+        cutoff_date = datetime.now() - timedelta(days=days)
+        return [
+            activity for activity in self._data["activities"]
+            if datetime.fromisoformat(activity["timestamp"]) >= cutoff_date
+        ]
+    
+    def get_activities_by_type(self, activity_type: str) -> list[dict]:
+        """Get all activities of a specific type."""
+        return [
+            activity for activity in self._data["activities"]
+            if activity["type"] == activity_type
+        ]

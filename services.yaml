@@ -258,3 +258,197 @@ log_milestone:
       example: "Big happy smile during play time"
       selector:
         text:
+
+log_bath:
+  name: Log Bath
+  description: Log a bath activity
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Anika"
+      selector:
+        text:
+    bath_type:
+      name: Bath Type
+      description: Type of bath given
+      required: false
+      selector:
+        select:
+          options:
+            - "full_bath"
+            - "sponge_bath"
+            - "hair_wash"
+    notes:
+      name: Notes
+      description: Optional notes about the bath
+      required: false
+      example: "First bath after hospital"
+      selector:
+        text:
+
+log_tummy_time:
+  name: Log Tummy Time
+  description: Log a tummy time session
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Anika"
+      selector:
+        text:
+    duration:
+      name: Duration
+      description: Duration of tummy time in minutes
+      required: true
+      example: 10
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: "min"
+    notes:
+      name: Notes
+      description: Optional notes about the tummy time
+      required: false
+      example: "Baby enjoyed it today"
+      selector:
+        text:
+
+log_crying:
+  name: Log Crying Episode
+  description: Log a crying episode
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Anika"
+      selector:
+        text:
+    crying_intensity:
+      name: Crying Intensity
+      description: Intensity level of crying
+      required: false
+      selector:
+        select:
+          options:
+            - "light"
+            - "moderate"
+            - "intense"
+    duration:
+      name: Duration
+      description: Duration of crying in minutes
+      required: false
+      example: 15
+      selector:
+        number:
+          min: 0
+          max: 120
+          unit_of_measurement: "min"
+    notes:
+      name: Notes
+      description: Optional notes about the crying episode
+      required: false
+      example: "Seemed to be hungry"
+      selector:
+        text:
+
+log_mood:
+  name: Log Mood
+  description: Log baby's current mood
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Anika"
+      selector:
+        text:
+    mood_type:
+      name: Mood Type
+      description: Current mood of the baby
+      required: true
+      selector:
+        select:
+          options:
+            - "happy"
+            - "fussy"
+            - "calm"
+            - "sleepy"
+            - "alert"
+    notes:
+      name: Notes
+      description: Optional notes about the mood
+      required: false
+      example: "Very content after feeding"
+      selector:
+        text:
+
+log_environmental:
+  name: Log Environmental Conditions
+  description: Log room environmental conditions
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Anika"
+      selector:
+        text:
+    room_temperature:
+      name: Room Temperature
+      description: Room temperature in Celsius
+      required: false
+      example: 20.5
+      selector:
+        number:
+          min: 10
+          max: 35
+          step: 0.1
+          unit_of_measurement: "°C"
+    humidity:
+      name: Humidity
+      description: Room humidity percentage
+      required: false
+      example: 45
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    notes:
+      name: Notes
+      description: Optional notes about conditions
+      required: false
+      example: "Room feels comfortable"
+      selector:
+        text:
+
+log_caregiver:
+  name: Log Caregiver Change
+  description: Log when caregiver responsibility changes
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Anika"
+      selector:
+        text:
+    caregiver_name:
+      name: Caregiver Name
+      description: Name of the new caregiver
+      required: true
+      example: "Mom"
+      selector:
+        text:
+    notes:
+      name: Notes
+      description: Optional notes about the caregiver change
+      required: false
+      example: "Taking over for night shift"
+      selector:
+        text:

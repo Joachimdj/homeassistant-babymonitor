@@ -50,6 +50,12 @@ async def async_setup_entry(
         QuickFeedingBreastBothButton(baby_name, storage),
         QuickSleepStartButton(baby_name, storage),
         QuickSleepEndButton(baby_name, storage),
+        QuickBathButton(baby_name, storage),
+        QuickTummyTimeButton(baby_name, storage),
+        QuickHappyMoodButton(baby_name, storage),
+        QuickCalmMoodButton(baby_name, storage),
+        QuickCryingButton(baby_name, storage),
+        LogCaregiverButton(baby_name, storage),
     ]
     
     async_add_entities(buttons, True)
@@ -242,5 +248,109 @@ class QuickSleepEndButton(BabyMonitorButtonBase):
                 "sleep_type": SLEEP_END,
                 "duration": duration,
                 "notes": f"Sleep ended - Duration: {duration // 60}h {duration % 60}m"
+            }
+        )
+
+
+class QuickBathButton(BabyMonitorButtonBase):
+    """Button for logging a quick bath."""
+    
+    _button_name = "Quick Bath"
+    _button_id = "quick_bath"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self._storage.async_add_activity(
+            "bath",
+            {
+                "bath_type": "full_bath",
+                "notes": "Quick bath logged"
+            }
+        )
+
+
+class QuickTummyTimeButton(BabyMonitorButtonBase):
+    """Button for logging tummy time session."""
+    
+    _button_name = "Quick Tummy Time"
+    _button_id = "quick_tummy_time"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self._storage.async_add_activity(
+            "tummy_time",
+            {
+                "duration": 10,  # Default 10 minute session
+                "notes": "Tummy time session completed"
+            }
+        )
+
+
+class QuickHappyMoodButton(BabyMonitorButtonBase):
+    """Button for logging happy mood."""
+    
+    _button_name = "Happy Mood"
+    _button_id = "quick_happy_mood"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self._storage.async_add_activity(
+            "mood",
+            {
+                "mood_type": "happy",
+                "notes": "Baby is happy and content"
+            }
+        )
+
+
+class QuickCalmMoodButton(BabyMonitorButtonBase):
+    """Button for logging calm mood."""
+    
+    _button_name = "Calm Mood"
+    _button_id = "quick_calm_mood"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self._storage.async_add_activity(
+            "mood",
+            {
+                "mood_type": "calm",
+                "notes": "Baby is calm and relaxed"
+            }
+        )
+
+
+class QuickCryingButton(BabyMonitorButtonBase):
+    """Button for logging crying episode start."""
+    
+    _button_name = "Start Crying"
+    _button_id = "quick_crying"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self._storage.async_add_activity(
+            "crying",
+            {
+                "crying_intensity": "moderate",
+                "duration": 0,  # Will be updated when crying ends
+                "notes": "Crying episode started"
+            }
+        )
+
+
+class LogCaregiverButton(BabyMonitorButtonBase):
+    """Button for switching caregiver."""
+    
+    _button_name = "Switch Caregiver"
+    _button_id = "switch_caregiver"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        # This would ideally prompt for caregiver name, for now using "Parent"
+        await self._storage.async_add_activity(
+            "caregiver",
+            {
+                "caregiver_name": "Parent",
+                "notes": "Caregiver changed"
             }
         )

@@ -19,6 +19,12 @@ from .const import (
     SERVICE_LOG_HEIGHT,
     SERVICE_LOG_MEDICATION,
     SERVICE_LOG_MILESTONE,
+    SERVICE_LOG_BATH,
+    SERVICE_LOG_TUMMY_TIME,
+    SERVICE_LOG_CRYING,
+    SERVICE_LOG_MOOD,
+    SERVICE_LOG_ENVIRONMENTAL,
+    SERVICE_LOG_CAREGIVER,
     ATTR_BABY_NAME,
     ATTR_DIAPER_TYPE,
     ATTR_FEEDING_TYPE,
@@ -32,6 +38,13 @@ from .const import (
     ATTR_MEDICATION_DOSAGE,
     ATTR_MILESTONE_NAME,
     ATTR_NOTES,
+    ATTR_DURATION,
+    ATTR_CRYING_INTENSITY,
+    ATTR_MOOD_TYPE,
+    ATTR_ROOM_TEMPERATURE,
+    ATTR_HUMIDITY,
+    ATTR_CAREGIVER_NAME,
+    ATTR_BATH_TYPE,
     ACTIVITY_DIAPER_CHANGE,
     ACTIVITY_FEEDING,
     ACTIVITY_SLEEP,
@@ -40,6 +53,12 @@ from .const import (
     ACTIVITY_HEIGHT,
     ACTIVITY_MEDICATION,
     ACTIVITY_MILESTONE,
+    ACTIVITY_BATH,
+    ACTIVITY_TUMMY_TIME,
+    ACTIVITY_CRYING,
+    ACTIVITY_MOOD,
+    ACTIVITY_ENVIRONMENTAL,
+    ACTIVITY_CAREGIVER,
     DIAPER_WET,
     DIAPER_DIRTY,
     DIAPER_BOTH,
@@ -106,6 +125,44 @@ SERVICE_LOG_MEDICATION_SCHEMA = vol.Schema({
 SERVICE_LOG_MILESTONE_SCHEMA = vol.Schema({
     vol.Required(ATTR_BABY_NAME): cv.string,
     vol.Required(ATTR_MILESTONE_NAME): cv.string,
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_BATH_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Optional(ATTR_BATH_TYPE, default="full_bath"): vol.In(["full_bath", "sponge_bath", "hair_wash"]),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_TUMMY_TIME_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_DURATION): vol.Coerce(int),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_CRYING_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Optional(ATTR_CRYING_INTENSITY, default="moderate"): vol.In(["light", "moderate", "intense"]),
+    vol.Optional(ATTR_DURATION, default=0): vol.Coerce(int),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_MOOD_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_MOOD_TYPE): vol.In(["happy", "fussy", "calm", "sleepy", "alert"]),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_ENVIRONMENTAL_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Optional(ATTR_ROOM_TEMPERATURE, default=0): vol.Coerce(float),
+    vol.Optional(ATTR_HUMIDITY, default=0): vol.Coerce(int),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_CAREGIVER_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_CAREGIVER_NAME): cv.string,
     vol.Optional(ATTR_NOTES, default=""): cv.string,
 })
 
@@ -265,6 +322,112 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
             _LOGGER.info(f"Logged milestone for {baby_name}: {milestone_name}")
     
+    async def log_bath(call: ServiceCall) -> None:
+        """Handle bath logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        bath_type = call.data.get(ATTR_BATH_TYPE, "full_bath")
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_BATH,
+                {
+                    "bath_type": bath_type,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged bath for {baby_name}: {bath_type}")
+    
+    async def log_tummy_time(call: ServiceCall) -> None:
+        """Handle tummy time logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        duration = call.data[ATTR_DURATION]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_TUMMY_TIME,
+                {
+                    "duration": duration,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged tummy time for {baby_name}: {duration} minutes")
+    
+    async def log_crying(call: ServiceCall) -> None:
+        """Handle crying logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        intensity = call.data.get(ATTR_CRYING_INTENSITY, "moderate")
+        duration = call.data.get(ATTR_DURATION, 0)
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_CRYING,
+                {
+                    "crying_intensity": intensity,
+                    "duration": duration,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged crying episode for {baby_name}: {intensity} intensity")
+    
+    async def log_mood(call: ServiceCall) -> None:
+        """Handle mood logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        mood_type = call.data[ATTR_MOOD_TYPE]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_MOOD,
+                {
+                    "mood_type": mood_type,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged mood for {baby_name}: {mood_type}")
+    
+    async def log_environmental(call: ServiceCall) -> None:
+        """Handle environmental conditions logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        room_temp = call.data.get(ATTR_ROOM_TEMPERATURE, 0)
+        humidity = call.data.get(ATTR_HUMIDITY, 0)
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_ENVIRONMENTAL,
+                {
+                    "room_temperature": room_temp,
+                    "humidity": humidity,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged environmental conditions for {baby_name}: {room_temp}°C, {humidity}%")
+    
+    async def log_caregiver(call: ServiceCall) -> None:
+        """Handle caregiver change logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        caregiver_name = call.data[ATTR_CAREGIVER_NAME]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_CAREGIVER,
+                {
+                    "caregiver_name": caregiver_name,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged caregiver change for {baby_name}: {caregiver_name}")
+    
     # Register services
     hass.services.async_register(
         DOMAIN, SERVICE_LOG_DIAPER_CHANGE, log_diaper_change, SERVICE_LOG_DIAPER_CHANGE_SCHEMA
@@ -290,6 +453,24 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN, SERVICE_LOG_MILESTONE, log_milestone, SERVICE_LOG_MILESTONE_SCHEMA
     )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_BATH, log_bath, SERVICE_LOG_BATH_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_TUMMY_TIME, log_tummy_time, SERVICE_LOG_TUMMY_TIME_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_CRYING, log_crying, SERVICE_LOG_CRYING_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_MOOD, log_mood, SERVICE_LOG_MOOD_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_ENVIRONMENTAL, log_environmental, SERVICE_LOG_ENVIRONMENTAL_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_CAREGIVER, log_caregiver, SERVICE_LOG_CAREGIVER_SCHEMA
+    )
 
 
 async def async_remove_services(hass: HomeAssistant) -> None:
@@ -302,6 +483,12 @@ async def async_remove_services(hass: HomeAssistant) -> None:
     hass.services.async_remove(DOMAIN, SERVICE_LOG_HEIGHT)
     hass.services.async_remove(DOMAIN, SERVICE_LOG_MEDICATION)
     hass.services.async_remove(DOMAIN, SERVICE_LOG_MILESTONE)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_BATH)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_TUMMY_TIME)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_CRYING)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_MOOD)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_ENVIRONMENTAL)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_CAREGIVER)
 
 
 async def _get_storage_for_baby(hass: HomeAssistant, baby_name: str):
