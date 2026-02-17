@@ -223,7 +223,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             
             # If ending sleep, calculate duration from last sleep start
             if sleep_type == SLEEP_END:
-                sleep_activities = storage.get_activities_by_type(ACTIVITY_SLEEP, 10)
+                sleep_activities = storage.get_activities_by_type(ACTIVITY_SLEEP, limit=10)
                 for activity in sleep_activities:
                     if activity["data"].get("sleep_type") == SLEEP_START:
                         start_time = datetime.fromisoformat(activity["timestamp"])

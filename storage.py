@@ -120,6 +120,8 @@ class BabyMonitorStorage:
             activities = activities[:limit]
         
         return activities
+        
+        return activities
     
     def get_activities_by_date_range(self, start_date: str, end_date: str) -> list[dict]:
         """Get activities within a date range."""
@@ -144,11 +146,4 @@ class BabyMonitorStorage:
         return [
             activity for activity in self._data["activities"]
             if datetime.fromisoformat(activity["timestamp"]) >= cutoff_date
-        ]
-    
-    def get_activities_by_type(self, activity_type: str) -> list[dict]:
-        """Get all activities of a specific type."""
-        return [
-            activity for activity in self._data["activities"]
-            if activity["type"] == activity_type
         ]

@@ -232,7 +232,7 @@ class QuickSleepEndButton(BabyMonitorButtonBase):
     async def async_press(self) -> None:
         """Handle the button press."""
         # Calculate duration from last sleep start
-        sleep_activities = self._storage.get_activities_by_type(ACTIVITY_SLEEP, 10)
+        sleep_activities = self._storage.get_activities_by_type(ACTIVITY_SLEEP, limit=10)
         duration = 0
         
         for activity in sleep_activities:

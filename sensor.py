@@ -18,6 +18,7 @@ from .const import (
     ACTIVITY_SLEEP,
     ACTIVITY_TEMPERATURE,
 )
+from .storage import BabyMonitorStorage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,7 +104,7 @@ class LastDiaperChangeSensor(BabyMonitorSensorBase):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        activities = self._storage.get_activities_by_type(ACTIVITY_DIAPER_CHANGE, 1)
+        activities = self._storage.get_activities_by_type(ACTIVITY_DIAPER_CHANGE, limit=1)
         if activities:
             return {
                 "diaper_type": activities[0]["data"].get("diaper_type", "unknown"),
@@ -148,7 +149,7 @@ class LastFeedingSensor(BabyMonitorSensorBase):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        activities = self._storage.get_activities_by_type(ACTIVITY_FEEDING, 1)
+        activities = self._storage.get_activities_by_type(ACTIVITY_FEEDING, limit=1)
         if activities:
             data = activities[0]["data"]
             return {
@@ -196,7 +197,7 @@ class LastSleepSensor(BabyMonitorSensorBase):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        activities = self._storage.get_activities_by_type(ACTIVITY_SLEEP, 5)
+        activities = self._storage.get_activities_by_type(ACTIVITY_SLEEP, limit=5)
         
         # Find the latest completed sleep session
         for activity in activities:
@@ -345,7 +346,7 @@ class CurrentTemperatureSensor(BabyMonitorSensorBase):
     @property
     def state(self) -> float | None:
         """Return the state of the sensor."""
-        activities = self._storage.get_activities_by_type(ACTIVITY_TEMPERATURE, 1)
+        activities = self._storage.get_activities_by_type(ACTIVITY_TEMPERATURE, limit=1)
         if activities:
             return activities[0]["data"].get("temperature")
         return None
@@ -353,7 +354,7 @@ class CurrentTemperatureSensor(BabyMonitorSensorBase):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional state attributes."""
-        activities = self._storage.get_activities_by_type(ACTIVITY_TEMPERATURE, 1)
+        activities = self._storage.get_activities_by_type(ACTIVITY_TEMPERATURE, limit=1)
         if activities:
             return {
                 "last_recorded": activities[0]["timestamp"],
@@ -488,6 +489,7 @@ class LastBathSensor(BabyMonitorSensorBase):
     """Sensor for last bath time."""
     
     _sensor_name = "Last Bath"
+    _sensor_id = "last_bath"
     
     @property
     def native_value(self) -> str | None:
@@ -522,6 +524,7 @@ class TummyTimeTodaySensor(BabyMonitorSensorBase):
     """Sensor for today's tummy time duration."""
     
     _sensor_name = "Tummy Time Today"
+    _sensor_id = "tummy_time_today"
     _attr_unit_of_measurement = "min"
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     
@@ -548,6 +551,7 @@ class SleepQualityScoreSensor(BabyMonitorSensorBase):
     """Sensor for sleep quality analysis."""
     
     _sensor_name = "Sleep Quality Score"
+    _sensor_id = "sleep_quality_score"
     _attr_unit_of_measurement = "%"
     
     @property
@@ -623,6 +627,7 @@ class GrowthPercentileSensor(BabyMonitorSensorBase):
     """Sensor for growth percentile tracking."""
     
     _sensor_name = "Growth Percentile"
+    _sensor_id = "growth_percentile"
     _attr_unit_of_measurement = "%"
     
     @property
@@ -676,6 +681,7 @@ class NextFeedingPredictionSensor(BabyMonitorSensorBase):
     """Sensor for predicting next feeding time."""
     
     _sensor_name = "Next Feeding Prediction"
+    _sensor_id = "next_feeding_prediction"
     
     @property
     def native_value(self) -> str:
@@ -743,6 +749,7 @@ class MoodAnalysisSensor(BabyMonitorSensorBase):
     """Sensor for mood pattern analysis."""
     
     _sensor_name = "Current Mood"
+    _sensor_id = "current_mood"
     
     @property
     def native_value(self) -> str:
@@ -783,6 +790,7 @@ class CryingAnalysisSensor(BabyMonitorSensorBase):
     """Sensor for crying pattern analysis."""
     
     _sensor_name = "Crying Analysis"
+    _sensor_id = "crying_analysis"
     
     @property
     def native_value(self) -> str:
@@ -831,6 +839,7 @@ class EnvironmentalConditionsSensor(BabyMonitorSensorBase):
     """Sensor for environmental monitoring."""
     
     _sensor_name = "Room Conditions"
+    _sensor_id = "room_conditions"
     
     @property
     def native_value(self) -> str:
@@ -878,6 +887,7 @@ class CurrentCaregiverSensor(BabyMonitorSensorBase):
     """Sensor for tracking current caregiver."""
     
     _sensor_name = "Current Caregiver"
+    _sensor_id = "current_caregiver"
     
     @property
     def native_value(self) -> str:
@@ -919,6 +929,7 @@ class GrowthVelocitySensor(BabyMonitorSensorBase):
     """Sensor for growth velocity tracking."""
     
     _sensor_name = "Growth Velocity"
+    _sensor_id = "growth_velocity"
     _attr_unit_of_measurement = "g/day"
     
     @property
@@ -980,6 +991,7 @@ class SleepRegressionIndicatorSensor(BabyMonitorSensorBase):
     """Sensor for detecting sleep pattern disruptions."""
     
     _sensor_name = "Sleep Pattern Status"
+    _sensor_id = "sleep_pattern_status"
     
     @property
     def native_value(self) -> str:
@@ -1033,6 +1045,7 @@ class DiaperChangeFrequencySensor(BabyMonitorSensorBase):
     """Sensor for diaper change frequency analysis."""
     
     _sensor_name = "Diaper Change Frequency"
+    _sensor_id = "diaper_change_frequency"
     _attr_unit_of_measurement = "changes/day"
     
     @property
@@ -1069,6 +1082,7 @@ class FeedingEfficiencySensor(BabyMonitorSensorBase):
     """Sensor for feeding efficiency analysis."""
     
     _sensor_name = "Feeding Efficiency"
+    _sensor_id = "feeding_efficiency"
     _attr_unit_of_measurement = "ml/min"
     
     @property
