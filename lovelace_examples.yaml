@@ -1,0 +1,423 @@
+# Example Lovelace Dashboard Configuration for Baby Monitor
+
+This file contains example dashboard configurations for the Baby Monitor integration.
+
+## Complete Baby Dashboard
+
+```yaml
+title: Baby Monitor Dashboard
+views:
+  - title: Overview
+    path: overview
+    cards:
+      - type: markdown
+        content: |
+          # 👶 Emma's Care Dashboard
+          Welcome to Emma's monitoring dashboard. Use the quick actions below for fast logging.
+        
+      - type: entities
+        title: 🏃 Quick Actions
+        show_header_toggle: false
+        entities:
+          - button.emma_quick_wet_diaper
+          - button.emma_quick_dirty_diaper
+          - button.emma_quick_wet_dirty_diaper
+          - button.emma_quick_bottle_feeding
+          - button.emma_quick_breast_feeding_left
+          - button.emma_quick_breast_feeding_right
+          - button.emma_quick_breast_feeding_both
+          - button.emma_start_sleep
+          - button.emma_end_sleep
+
+      - type: entities
+        title: 📊 Current Status
+        show_header_toggle: false
+        entities:
+          - entity: sensor.emma_last_diaper_change
+            secondary_info: last-changed
+          - entity: sensor.emma_last_feeding
+            secondary_info: last-changed
+          - entity: sensor.emma_last_sleep
+            secondary_info: last-changed
+          - entity: sensor.emma_temperature
+            secondary_info: last-changed
+
+      - type: entities
+        title: 📈 Today's Summary
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: diaper_changes
+            name: Diaper Changes Today
+            icon: mdi:baby
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: wet_diapers
+            name: Wet Diapers
+            icon: mdi:water
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: dirty_diapers
+            name: Dirty Diapers
+            icon: mdi:delete-variant
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: feedings
+            name: Feedings Today
+            icon: mdi:bottle-tonic-skull
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: total_feeding_amount_ml
+            name: Total Fed (ml)
+            icon: mdi:cup-water
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: sleep_sessions
+            name: Sleep Sessions
+            icon: mdi:sleep
+          - type: attribute
+            entity: sensor.emma_daily_summary
+            attribute: total_sleep_formatted
+            name: Total Sleep
+            icon: mdi:sleep
+
+  - title: Statistics
+    path: stats
+    cards:
+      - type: statistics-graph
+        title: Feeding Amounts (Last 7 Days)
+        entities:
+          - sensor.emma_average_feeding_amount
+        period: day
+        days_to_show: 7
+        stat_types:
+          - mean
+          - max
+          - min
+
+      - type: statistics-graph
+        title: Sleep Duration (Last 7 Days)
+        entities:
+          - sensor.emma_average_sleep_duration
+        period: day
+        days_to_show: 7
+        stat_types:
+          - mean
+
+      - type: entities
+        title: 📊 All Time Statistics
+        show_header_toggle: false
+        entities:
+          - sensor.emma_total_diaper_changes
+          - sensor.emma_total_feedings
+          - sensor.emma_total_sleep_sessions
+          - sensor.emma_average_feeding_amount
+          - sensor.emma_average_sleep_duration
+
+      - type: entities
+        title: 🗓️ Weekly Summary
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.emma_weekly_summary
+            attribute: total_diaper_changes
+            name: Total Diaper Changes (7d)
+          - type: attribute
+            entity: sensor.emma_weekly_summary
+            attribute: total_feedings
+            name: Total Feedings (7d)
+          - type: attribute
+            entity: sensor.emma_weekly_summary
+            attribute: avg_diapers_per_day
+            name: Avg Diapers/Day
+          - type: attribute
+            entity: sensor.emma_weekly_summary
+            attribute: avg_feedings_per_day
+            name: Avg Feedings/Day
+          - type: attribute
+            entity: sensor.emma_weekly_summary
+            attribute: avg_sleep_per_day_formatted
+            name: Avg Sleep/Day
+
+  - title: Health & Growth
+    path: health
+    cards:
+      - type: entities
+        title: 🌡️ Health Monitoring
+        show_header_toggle: false
+        entities:
+          - sensor.emma_temperature
+
+      - type: markdown
+        content: |
+          ## 📏 Growth Tracking
+          Use the services to log weight and height measurements during doctor visits.
+          
+          **Recent Services:**
+          - `babymonitor.log_weight`
+          - `babymonitor.log_height`
+          - `babymonitor.log_medication`
+          - `babymonitor.log_milestone`
+
+      - type: button
+        name: Log Temperature
+        tap_action:
+          action: call-service
+          service: babymonitor.log_temperature
+          data:
+            baby_name: Emma
+          target: {}
+
+  - title: Manual Logging
+    path: manual
+    cards:
+      - type: markdown
+        content: |
+          ## 📝 Manual Activity Logging
+          Use these service calls for detailed logging with custom notes and amounts.
+
+      - type: button
+        name: Log Diaper Change
+        tap_action:
+          action: call-service
+          service: babymonitor.log_diaper_change
+          data:
+            baby_name: Emma
+            diaper_type: wet
+            notes: "Manual log"
+          target: {}
+
+      - type: button
+        name: Log Feeding
+        tap_action:
+          action: call-service
+          service: babymonitor.log_feeding
+          data:
+            baby_name: Emma
+            feeding_type: bottle
+            feeding_amount: 150
+            feeding_duration: 20
+            notes: "Custom feeding"
+          target: {}
+
+      - type: button
+        name: Log Milestone
+        tap_action:
+          action: call-service
+          service: babymonitor.log_milestone
+          data:
+            baby_name: Emma
+            milestone_name: "First laugh"
+            notes: "Such a beautiful sound!"
+          target: {}
+```
+
+## Compact Mobile Dashboard
+
+```yaml
+title: Emma - Mobile
+views:
+  - title: Quick
+    path: mobile-quick
+    panel: true
+    cards:
+      - type: grid
+        columns: 2
+        cards:
+          - type: button
+            entity: button.emma_quick_wet_diaper
+            name: Wet
+            icon: mdi:water
+            tap_action:
+              action: toggle
+
+          - type: button
+            entity: button.emma_quick_dirty_diaper
+            name: Dirty
+            icon: mdi:delete-variant
+            tap_action:
+              action: toggle
+
+          - type: button
+            entity: button.emma_quick_bottle_feeding
+            name: Bottle
+            icon: mdi:bottle-tonic-skull
+            tap_action:
+              action: toggle
+
+          - type: button
+            entity: button.emma_quick_breast_feeding_both
+            name: Breast
+            icon: mdi:human-female
+            tap_action:
+              action: toggle
+
+          - type: button
+            entity: button.emma_start_sleep
+            name: Sleep Start
+            icon: mdi:sleep
+            tap_action:
+              action: toggle
+
+          - type: button
+            entity: button.emma_end_sleep
+            name: Sleep End
+            icon: mdi:sleep-off
+            tap_action:
+              action: toggle
+
+      - type: entities
+        title: Status
+        entities:
+          - sensor.emma_last_diaper_change
+          - sensor.emma_last_feeding
+          - sensor.emma_last_sleep
+          - sensor.emma_daily_summary
+```
+
+## Picture Elements Dashboard (with baby photo)
+
+```yaml
+title: Emma's Room
+views:
+  - title: Visual
+    path: visual
+    panel: true
+    cards:
+      - type: picture-elements
+        image: /local/baby_room.jpg  # Add your baby's photo here
+        elements:
+          # Quick action buttons overlaid on image
+          - type: state-icon
+            entity: button.emma_quick_wet_diaper
+            style:
+              top: 20%
+              left: 20%
+              --paper-item-icon-color: blue
+            tap_action:
+              action: toggle
+
+          - type: state-icon
+            entity: button.emma_quick_dirty_diaper
+            style:
+              top: 20%
+              left: 40%
+              --paper-item-icon-color: brown
+            tap_action:
+              action: toggle
+
+          - type: state-icon
+            entity: button.emma_quick_bottle_feeding
+            style:
+              top: 40%
+              left: 20%
+              --paper-item-icon-color: green
+            tap_action:
+              action: toggle
+
+          - type: state-icon
+            entity: button.emma_start_sleep
+            style:
+              top: 40%
+              left: 40%
+              --paper-item-icon-color: purple
+            tap_action:
+              action: toggle
+
+          # Status display
+          - type: state-label
+            entity: sensor.emma_last_feeding
+            attribute: time_ago
+            prefix: "Last fed: "
+            style:
+              top: 80%
+              left: 50%
+              color: white
+              font-size: 16px
+              background-color: rgba(0, 0, 0, 0.3)
+              padding: 4px 8px
+              border-radius: 4px
+
+          - type: state-label
+            entity: sensor.emma_last_diaper_change
+            attribute: time_ago
+            prefix: "Last changed: "
+            style:
+              top: 85%
+              left: 50%
+              color: white
+              font-size: 16px
+              background-color: rgba(0, 0, 0, 0.3)
+              padding: 4px 8px
+              border-radius: 4px
+```
+
+## Chart Dashboard
+
+```yaml
+title: Emma - Analytics
+views:
+  - title: Charts
+    path: charts
+    cards:
+      - type: history-graph
+        title: Activity Timeline (24h)
+        hours_to_show: 24
+        entities:
+          - sensor.emma_last_diaper_change
+          - sensor.emma_last_feeding
+          - sensor.emma_last_sleep
+
+      - type: statistics-graph
+        title: Daily Feeding Amounts
+        entities:
+          - sensor.emma_average_feeding_amount
+        period: day
+        days_to_show: 14
+
+      - type: statistics-graph
+        title: Sleep Patterns
+        entities:
+          - sensor.emma_average_sleep_duration
+        period: day
+        days_to_show: 14
+
+      - type: custom:mini-graph-card
+        name: Temperature Trend
+        entities:
+          - entity: sensor.emma_temperature
+        hours_to_show: 168  # 1 week
+        points_per_hour: 0.25
+        line_color: orange
+        line_width: 2
+        animate: true
+```
+
+## Usage Instructions
+
+1. Copy the desired dashboard configuration
+2. Go to your Home Assistant Lovelace dashboard
+3. Click the three dots menu → "Edit Dashboard"
+4. Click "Raw configuration editor"
+5. Paste the configuration
+6. Replace "Emma" with your baby's name if different
+7. Save the configuration
+
+## Customization Tips
+
+- **Icons**: Change the `mdi:` icons to match your preferences
+- **Colors**: Use the `--paper-item-icon-color` property to customize button colors
+- **Layout**: Adjust the `columns` property in grid cards for different layouts
+- **Automation**: Add more service call buttons for different scenarios
+- **Photos**: Add baby photos using the picture-elements card type
+- **Themes**: The dashboard works with any Home Assistant theme
+
+## Mobile App Widget Ideas
+
+Create mobile app widgets using the quick action buttons:
+- Long press the Home Assistant app icon
+- Add widget
+- Select "Button" widget type  
+- Choose your quick action buttons
+- Place on home screen for instant access

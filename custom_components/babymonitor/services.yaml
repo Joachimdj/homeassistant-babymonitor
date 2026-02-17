@@ -1,0 +1,260 @@
+# Services for Baby Monitor integration
+
+log_diaper_change:
+  name: Log Diaper Change
+  description: Log a diaper change activity
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    diaper_type:
+      name: Diaper Type
+      description: Type of diaper change
+      required: true
+      selector:
+        select:
+          options:
+            - "wet"
+            - "dirty"
+            - "both"
+    notes:
+      name: Notes
+      description: Optional notes about the diaper change
+      required: false
+      example: "First change of the day"
+      selector:
+        text:
+
+log_feeding:
+  name: Log Feeding
+  description: Log a feeding activity
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    feeding_type:
+      name: Feeding Type
+      description: Type of feeding
+      required: true
+      selector:
+        select:
+          options:
+            - "bottle"
+            - "breast_left"
+            - "breast_right"
+            - "breast_both"
+            - "solid"
+    feeding_amount:
+      name: Feeding Amount (ml)
+      description: Amount of feeding in milliliters (for bottle feeding)
+      required: false
+      default: 0
+      example: 120
+      selector:
+        number:
+          min: 0
+          max: 500
+          unit_of_measurement: "ml"
+    feeding_duration:
+      name: Feeding Duration (minutes)
+      description: Duration of feeding in minutes
+      required: false
+      default: 0
+      example: 15
+      selector:
+        number:
+          min: 0
+          max: 120
+          unit_of_measurement: "minutes"
+    notes:
+      name: Notes
+      description: Optional notes about the feeding
+      required: false
+      example: "Baby was very hungry"
+      selector:
+        text:
+
+log_sleep:
+  name: Log Sleep
+  description: Log sleep start or end
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    sleep_type:
+      name: Sleep Type
+      description: Whether sleep is starting or ending
+      required: true
+      selector:
+        select:
+          options:
+            - "start"
+            - "end"
+    notes:
+      name: Notes
+      description: Optional notes about the sleep
+      required: false
+      example: "Fell asleep easily"
+      selector:
+        text:
+
+log_temperature:
+  name: Log Temperature
+  description: Log baby's temperature
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    temperature:
+      name: Temperature (°C)
+      description: Baby's temperature in Celsius
+      required: true
+      example: 36.5
+      selector:
+        number:
+          min: 30.0
+          max: 45.0
+          step: 0.1
+          unit_of_measurement: "°C"
+    notes:
+      name: Notes
+      description: Optional notes about the temperature measurement
+      required: false
+      example: "Measured after bath"
+      selector:
+        text:
+
+log_weight:
+  name: Log Weight
+  description: Log baby's weight
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    weight:
+      name: Weight (kg)
+      description: Baby's weight in kilograms
+      required: true
+      example: 4.2
+      selector:
+        number:
+          min: 1.0
+          max: 20.0
+          step: 0.01
+          unit_of_measurement: "kg"
+    notes:
+      name: Notes
+      description: Optional notes about the weight measurement
+      required: false
+      example: "Doctor visit checkup"
+      selector:
+        text:
+
+log_height:
+  name: Log Height
+  description: Log baby's height
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    height:
+      name: Height (cm)
+      description: Baby's height in centimeters
+      required: true
+      example: 52.0
+      selector:
+        number:
+          min: 30.0
+          max: 120.0
+          step: 0.1
+          unit_of_measurement: "cm"
+    notes:
+      name: Notes
+      description: Optional notes about the height measurement
+      required: false
+      example: "3 month checkup"
+      selector:
+        text:
+
+log_medication:
+  name: Log Medication
+  description: Log medication given to baby
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    medication_name:
+      name: Medication Name
+      description: Name of the medication
+      required: true
+      example: "Paracetamol"
+      selector:
+        text:
+    medication_dosage:
+      name: Medication Dosage
+      description: Dosage of the medication
+      required: false
+      example: "2.5ml"
+      selector:
+        text:
+    notes:
+      name: Notes
+      description: Optional notes about the medication
+      required: false
+      example: "For fever"
+      selector:
+        text:
+
+log_milestone:
+  name: Log Milestone
+  description: Log a developmental milestone
+  fields:
+    baby_name:
+      name: Baby Name
+      description: Name of the baby
+      required: true
+      example: "Emma"
+      selector:
+        text:
+    milestone_name:
+      name: Milestone Name
+      description: Name of the milestone achieved
+      required: true
+      example: "First smile"
+      selector:
+        text:
+    notes:
+      name: Notes
+      description: Optional notes about the milestone
+      required: false
+      example: "Big happy smile during play time"
+      selector:
+        text:

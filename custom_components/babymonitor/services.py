@@ -1,0 +1,316 @@
+"""Services for Baby Monitor integration."""
+from __future__ import annotations
+
+import logging
+import voluptuous as vol
+from datetime import datetime
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
+
+from .const import (
+    DOMAIN,
+    SERVICE_LOG_DIAPER_CHANGE,
+    SERVICE_LOG_FEEDING,
+    SERVICE_LOG_SLEEP,
+    SERVICE_LOG_TEMPERATURE,
+    SERVICE_LOG_WEIGHT,
+    SERVICE_LOG_HEIGHT,
+    SERVICE_LOG_MEDICATION,
+    SERVICE_LOG_MILESTONE,
+    ATTR_BABY_NAME,
+    ATTR_DIAPER_TYPE,
+    ATTR_FEEDING_TYPE,
+    ATTR_FEEDING_AMOUNT,
+    ATTR_FEEDING_DURATION,
+    ATTR_SLEEP_TYPE,
+    ATTR_TEMPERATURE,
+    ATTR_WEIGHT,
+    ATTR_HEIGHT,
+    ATTR_MEDICATION_NAME,
+    ATTR_MEDICATION_DOSAGE,
+    ATTR_MILESTONE_NAME,
+    ATTR_NOTES,
+    ACTIVITY_DIAPER_CHANGE,
+    ACTIVITY_FEEDING,
+    ACTIVITY_SLEEP,
+    ACTIVITY_TEMPERATURE,
+    ACTIVITY_WEIGHT,
+    ACTIVITY_HEIGHT,
+    ACTIVITY_MEDICATION,
+    ACTIVITY_MILESTONE,
+    DIAPER_WET,
+    DIAPER_DIRTY,
+    DIAPER_BOTH,
+    FEEDING_BOTTLE,
+    FEEDING_BREAST_LEFT,
+    FEEDING_BREAST_RIGHT,
+    FEEDING_BREAST_BOTH,
+    FEEDING_SOLID,
+    SLEEP_START,
+    SLEEP_END,
+)
+
+_LOGGER = logging.getLogger(__name__)
+
+# Service schemas
+SERVICE_LOG_DIAPER_CHANGE_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_DIAPER_TYPE): vol.In([DIAPER_WET, DIAPER_DIRTY, DIAPER_BOTH]),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_FEEDING_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_FEEDING_TYPE): vol.In([
+        FEEDING_BOTTLE, FEEDING_BREAST_LEFT, FEEDING_BREAST_RIGHT, 
+        FEEDING_BREAST_BOTH, FEEDING_SOLID
+    ]),
+    vol.Optional(ATTR_FEEDING_AMOUNT, default=0): cv.positive_int,
+    vol.Optional(ATTR_FEEDING_DURATION, default=0): cv.positive_int,
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_SLEEP_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_SLEEP_TYPE): vol.In([SLEEP_START, SLEEP_END]),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_TEMPERATURE_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_TEMPERATURE): vol.Coerce(float),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_WEIGHT_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_WEIGHT): vol.Coerce(float),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_HEIGHT_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_HEIGHT): vol.Coerce(float),
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_MEDICATION_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_MEDICATION_NAME): cv.string,
+    vol.Optional(ATTR_MEDICATION_DOSAGE, default=""): cv.string,
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+SERVICE_LOG_MILESTONE_SCHEMA = vol.Schema({
+    vol.Required(ATTR_BABY_NAME): cv.string,
+    vol.Required(ATTR_MILESTONE_NAME): cv.string,
+    vol.Optional(ATTR_NOTES, default=""): cv.string,
+})
+
+
+async def async_setup_services(hass: HomeAssistant) -> None:
+    """Set up services for Baby Monitor integration."""
+    
+    async def log_diaper_change(call: ServiceCall) -> None:
+        """Handle diaper change logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        diaper_type = call.data[ATTR_DIAPER_TYPE]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_DIAPER_CHANGE,
+                {
+                    "diaper_type": diaper_type,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged diaper change for {baby_name}: {diaper_type}")
+    
+    async def log_feeding(call: ServiceCall) -> None:
+        """Handle feeding logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        feeding_type = call.data[ATTR_FEEDING_TYPE]
+        feeding_amount = call.data.get(ATTR_FEEDING_AMOUNT, 0)
+        feeding_duration = call.data.get(ATTR_FEEDING_DURATION, 0)
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_FEEDING,
+                {
+                    "feeding_type": feeding_type,
+                    "feeding_amount": feeding_amount,
+                    "feeding_duration": feeding_duration,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged feeding for {baby_name}: {feeding_type}")
+    
+    async def log_sleep(call: ServiceCall) -> None:
+        """Handle sleep logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        sleep_type = call.data[ATTR_SLEEP_TYPE]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            data = {
+                "sleep_type": sleep_type,
+                "notes": notes
+            }
+            
+            # If ending sleep, calculate duration from last sleep start
+            if sleep_type == SLEEP_END:
+                sleep_activities = storage.get_activities_by_type(ACTIVITY_SLEEP, 10)
+                for activity in sleep_activities:
+                    if activity["data"].get("sleep_type") == SLEEP_START:
+                        start_time = datetime.fromisoformat(activity["timestamp"])
+                        end_time = datetime.now()
+                        duration = int((end_time - start_time).total_seconds() / 60)
+                        data["duration"] = duration
+                        break
+            
+            await storage.async_add_activity(ACTIVITY_SLEEP, data)
+            _LOGGER.info(f"Logged sleep for {baby_name}: {sleep_type}")
+    
+    async def log_temperature(call: ServiceCall) -> None:
+        """Handle temperature logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        temperature = call.data[ATTR_TEMPERATURE]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_TEMPERATURE,
+                {
+                    "temperature": temperature,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged temperature for {baby_name}: {temperature}°C")
+    
+    async def log_weight(call: ServiceCall) -> None:
+        """Handle weight logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        weight = call.data[ATTR_WEIGHT]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_WEIGHT,
+                {
+                    "weight": weight,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged weight for {baby_name}: {weight}kg")
+    
+    async def log_height(call: ServiceCall) -> None:
+        """Handle height logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        height = call.data[ATTR_HEIGHT]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_HEIGHT,
+                {
+                    "height": height,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged height for {baby_name}: {height}cm")
+    
+    async def log_medication(call: ServiceCall) -> None:
+        """Handle medication logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        medication_name = call.data[ATTR_MEDICATION_NAME]
+        medication_dosage = call.data.get(ATTR_MEDICATION_DOSAGE, "")
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_MEDICATION,
+                {
+                    "medication_name": medication_name,
+                    "medication_dosage": medication_dosage,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged medication for {baby_name}: {medication_name}")
+    
+    async def log_milestone(call: ServiceCall) -> None:
+        """Handle milestone logging service call."""
+        baby_name = call.data[ATTR_BABY_NAME]
+        milestone_name = call.data[ATTR_MILESTONE_NAME]
+        notes = call.data.get(ATTR_NOTES, "")
+        
+        storage = await _get_storage_for_baby(hass, baby_name)
+        if storage:
+            await storage.async_add_activity(
+                ACTIVITY_MILESTONE,
+                {
+                    "milestone_name": milestone_name,
+                    "notes": notes
+                }
+            )
+            _LOGGER.info(f"Logged milestone for {baby_name}: {milestone_name}")
+    
+    # Register services
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_DIAPER_CHANGE, log_diaper_change, SERVICE_LOG_DIAPER_CHANGE_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_FEEDING, log_feeding, SERVICE_LOG_FEEDING_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_SLEEP, log_sleep, SERVICE_LOG_SLEEP_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_TEMPERATURE, log_temperature, SERVICE_LOG_TEMPERATURE_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_WEIGHT, log_weight, SERVICE_LOG_WEIGHT_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_HEIGHT, log_height, SERVICE_LOG_HEIGHT_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_MEDICATION, log_medication, SERVICE_LOG_MEDICATION_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_LOG_MILESTONE, log_milestone, SERVICE_LOG_MILESTONE_SCHEMA
+    )
+
+
+async def async_remove_services(hass: HomeAssistant) -> None:
+    """Remove services for Baby Monitor integration."""
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_DIAPER_CHANGE)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_FEEDING)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_SLEEP)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_TEMPERATURE)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_WEIGHT)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_HEIGHT)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_MEDICATION)
+    hass.services.async_remove(DOMAIN, SERVICE_LOG_MILESTONE)
+
+
+async def _get_storage_for_baby(hass: HomeAssistant, baby_name: str):
+    """Get storage instance for the specified baby."""
+    for entry_id, data in hass.data.get(DOMAIN, {}).items():
+        if "storage" in data:
+            storage = data["storage"]
+            if storage._baby_name == baby_name:
+                return storage
+    
+    _LOGGER.error(f"No storage found for baby: {baby_name}")
+    return None

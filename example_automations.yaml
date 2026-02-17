@@ -1,0 +1,384 @@
+# Example Automations for Baby Monitor Integration
+# Copy relevant automations to your automations.yaml file
+
+# Voice Assistant Integration Examples
+automation:
+  # Log diaper change via voice command
+  - alias: "Baby Monitor - Voice Log Wet Diaper"
+    description: "Log wet diaper change when voice command is detected"
+    trigger:
+      - platform: conversation
+        command: ["Log wet diaper for {baby_name}", "Wet diaper for {baby_name}", "{baby_name} wet diaper"]
+    action:
+      - service: babymonitor.log_diaper_change
+        data:
+          baby_name: "{{ trigger.slots.baby_name | default('Emma') }}"
+          diaper_type: "wet"
+          notes: "Logged via voice command"
+      - service: tts.speak
+        target:
+          entity_id: media_player.living_room_speaker
+        data:
+          message: "Logged wet diaper change for {{ trigger.slots.baby_name | default('Emma') }}"
+
+  - alias: "Baby Monitor - Voice Log Feeding"
+    description: "Log feeding via voice command"
+    trigger:
+      - platform: conversation
+        command: ["Log feeding for {baby_name}", "Fed {baby_name}", "Bottle feeding {baby_name}"]
+    action:
+      - service: babymonitor.log_feeding
+        data:
+          baby_name: "{{ trigger.slots.baby_name | default('Emma') }}"
+          feeding_type: "bottle"
+          feeding_amount: 120
+          feeding_duration: 15
+          notes: "Logged via voice command"
+      - service: tts.speak
+        target:
+          entity_id: media_player.living_room_speaker
+        data:
+          message: "Logged feeding for {{ trigger.slots.baby_name | default('Emma') }}"
+
+# Feeding Reminders
+  - alias: "Baby Monitor - Feeding Reminder 3 Hours"
+    description: "Send reminder if no feeding in 3 hours during daytime"
+    trigger:
+      - platform: template
+        value_template: >
+          {% set last_feeding = states('sensor.emma_last_feeding') %}
+          {% if last_feeding != 'Never' and last_feeding != 'unknown' %}
+            {{ (as_timestamp(now()) - as_timestamp(last_feeding)) > 10800 }}
+          {% else %}
+            false
+          {% endif %}
+    condition:
+      - condition: time
+        after: "06:00:00"
+        before: "22:00:00"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "It's been 3 hours since Emma's last feeding"
+          title: "🍼 Feeding Reminder"
+          data:
+            actions:
+              - action: "LOG_BOTTLE_FEEDING"
+                title: "Log Bottle Feeding"
+              - action: "LOG_BREAST_FEEDING"
+                title: "Log Breast Feeding"
+
+  - alias: "Baby Monitor - Night Feeding Alert"
+    description: "Alert during night feeding (less urgent)"
+    trigger:
+      - platform: template
+        value_template: >
+          {% set last_feeding = states('sensor.emma_last_feeding') %}
+          {% if last_feeding != 'Never' and last_feeding != 'unknown' %}
+            {{ (as_timestamp(now()) - as_timestamp(last_feeding)) > 14400 }}
+          {% else %}
+            false
+          {% endif %}
+    condition:
+      - condition: time
+        after: "22:00:00"
+        before: "06:00:00"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "It's been 4+ hours since last feeding (night time)"
+          title: "🌙 Night Feeding Check"
+
+# Diaper Change Reminders
+  - alias: "Baby Monitor - Diaper Change Reminder"
+    description: "Remind to check diaper if no change in 4 hours"
+    trigger:
+      - platform: template
+        value_template: >
+          {% set last_change = states('sensor.emma_last_diaper_change') %}
+          {% if last_change != 'Never' and last_change != 'unknown' %}
+            {{ (as_timestamp(now()) - as_timestamp(last_change)) > 14400 }}
+          {% else %}
+            false
+          {% endif %}
+    condition:
+      - condition: time
+        after: "07:00:00"
+        before: "21:00:00"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "It's been 4+ hours since last diaper change"
+          title: "👶 Diaper Check"
+          data:
+            actions:
+              - action: "LOG_WET_DIAPER"
+                title: "Log Wet Diaper"
+              - action: "LOG_DIRTY_DIAPER"
+                title: "Log Dirty Diaper"
+
+# Sleep Monitoring
+  - alias: "Baby Monitor - Short Sleep Alert"
+    description: "Alert if sleep session was very short"
+    trigger:
+      - platform: state
+        entity_id: sensor.emma_last_sleep
+    condition:
+      - condition: template
+        value_template: >
+          {{ state_attr('sensor.emma_last_sleep', 'duration_minutes') | int < 30 }}
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Emma's last sleep was only {{ state_attr('sensor.emma_last_sleep', 'duration_formatted') }}"
+          title: "😴 Short Sleep Alert"
+
+  - alias: "Baby Monitor - Long Sleep Alert"
+    description: "Alert if baby is sleeping longer than usual"
+    trigger:
+      - platform: template
+        value_template: >
+          {% set sleep_activities = state_attr('sensor.emma_last_sleep', 'activities') %}
+          {% set current_sleep_start = None %}
+          {% for activity in (sleep_activities | default([])) %}
+            {% if activity.data.sleep_type == 'start' %}
+              {% set current_sleep_start = activity.timestamp %}
+              {% break %}
+            {% elif activity.data.sleep_type == 'end' %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+          {% if current_sleep_start %}
+            {{ (as_timestamp(now()) - as_timestamp(current_sleep_start)) > 10800 }}
+          {% else %}
+            false
+          {% endif %}
+    condition:
+      - condition: time
+        after: "06:00:00"
+        before: "22:00:00"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Emma has been sleeping for 3+ hours"
+          title: "😴 Long Sleep Check"
+
+# Daily Summary Reports
+  - alias: "Baby Monitor - Morning Summary"
+    description: "Send morning summary of yesterday's activities"
+    trigger:
+      - platform: time
+        at: "08:00:00"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: >
+            Yesterday: {{ state_attr('sensor.emma_daily_summary', 'diaper_changes') }} diapers, 
+            {{ state_attr('sensor.emma_daily_summary', 'feedings') }} feedings, 
+            {{ state_attr('sensor.emma_daily_summary', 'total_sleep_formatted') }} sleep
+          title: "🌅 Yesterday's Baby Report"
+
+  - alias: "Baby Monitor - Evening Summary"
+    description: "Send evening summary of today's activities"
+    trigger:
+      - platform: time
+        at: "20:00:00"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: >
+            Today: {{ state_attr('sensor.emma_daily_summary', 'diaper_changes') }} diapers, 
+            {{ state_attr('sensor.emma_daily_summary', 'feedings') }} feedings 
+            ({{ state_attr('sensor.emma_daily_summary', 'total_feeding_amount_ml') }}ml), 
+            {{ state_attr('sensor.emma_daily_summary', 'total_sleep_formatted') }} sleep
+          title: "🌆 Today's Baby Report"
+
+# Temperature Monitoring
+  - alias: "Baby Monitor - High Temperature Alert"
+    description: "Alert if recorded temperature is high"
+    trigger:
+      - platform: state
+        entity_id: sensor.emma_temperature
+    condition:
+      - condition: template
+        value_template: "{{ states('sensor.emma_temperature') | float > 37.5 }}"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Emma's temperature is {{ states('sensor.emma_temperature') }}°C - monitor closely"
+          title: "🌡️ High Temperature Alert"
+          data:
+            tag: "high_temperature"
+            importance: "high"
+
+  - alias: "Baby Monitor - Low Temperature Alert"
+    description: "Alert if recorded temperature is low"
+    trigger:
+      - platform: state
+        entity_id: sensor.emma_temperature
+    condition:
+      - condition: template
+        value_template: "{{ states('sensor.emma_temperature') | float < 36.0 }}"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Emma's temperature is {{ states('sensor.emma_temperature') }}°C - check warmth"
+          title: "🌡️ Low Temperature Alert"
+          data:
+            tag: "low_temperature"
+
+# Mobile App Action Handlers
+  - alias: "Baby Monitor - Handle Mobile App Actions"
+    description: "Handle quick actions from mobile app notifications"
+    trigger:
+      - platform: event
+        event_type: mobile_app_notification_action
+    action:
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ trigger.event.data.action == 'LOG_BOTTLE_FEEDING' }}"
+            sequence:
+              - service: babymonitor.log_feeding
+                data:
+                  baby_name: "Emma"
+                  feeding_type: "bottle"
+                  feeding_amount: 120
+                  feeding_duration: 15
+                  notes: "Logged via mobile app action"
+
+          - conditions:
+              - condition: template
+                value_template: "{{ trigger.event.data.action == 'LOG_BREAST_FEEDING' }}"
+            sequence:
+              - service: babymonitor.log_feeding
+                data:
+                  baby_name: "Emma"
+                  feeding_type: "breast_both"
+                  feeding_duration: 20
+                  notes: "Logged via mobile app action"
+
+          - conditions:
+              - condition: template
+                value_template: "{{ trigger.event.data.action == 'LOG_WET_DIAPER' }}"
+            sequence:
+              - service: babymonitor.log_diaper_change
+                data:
+                  baby_name: "Emma"
+                  diaper_type: "wet"
+                  notes: "Logged via mobile app action"
+
+          - conditions:
+              - condition: template
+                value_template: "{{ trigger.event.data.action == 'LOG_DIRTY_DIAPER' }}"
+            sequence:
+              - service: babymonitor.log_diaper_change
+                data:
+                  baby_name: "Emma"
+                  diaper_type: "dirty"
+                  notes: "Logged via mobile app action"
+
+# Weekly Summary Report
+  - alias: "Baby Monitor - Weekly Summary"
+    description: "Send detailed weekly summary every Sunday morning"
+    trigger:
+      - platform: time
+        at: "09:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - sun
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: >
+            Weekly Stats: 
+            {{ state_attr('sensor.emma_weekly_summary', 'total_diaper_changes') }} diapers 
+            ({{ state_attr('sensor.emma_weekly_summary', 'avg_diapers_per_day') }}/day), 
+            {{ state_attr('sensor.emma_weekly_summary', 'total_feedings') }} feedings 
+            ({{ state_attr('sensor.emma_weekly_summary', 'avg_feedings_per_day') }}/day), 
+            {{ state_attr('sensor.emma_weekly_summary', 'avg_sleep_per_day_formatted') }}/day sleep
+          title: "📊 Weekly Baby Report"
+
+# Growth Milestone Celebrations
+  - alias: "Baby Monitor - Milestone Celebration"
+    description: "Celebrate when milestones are logged"
+    trigger:
+      - platform: event
+        event_type: call_service
+        event_data:
+          service: babymonitor.log_milestone
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "🎉 Emma reached a new milestone: {{ trigger.event.data.service_data.milestone_name }}!"
+          title: "🎉 Milestone Achievement!"
+      - service: light.turn_on
+        target:
+          entity_id: light.nursery_light
+        data:
+          color_name: "green"
+          brightness: 255
+      - delay: "00:00:05"
+      - service: light.turn_off
+        target:
+          entity_id: light.nursery_light
+
+# Smart Home Integration
+  - alias: "Baby Monitor - Feeding Time Lights"
+    description: "Dim lights when starting feeding at night"
+    trigger:
+      - platform: event
+        event_type: call_service
+        event_data:
+          service: babymonitor.log_feeding
+    condition:
+      - condition: time
+        after: "22:00:00"
+        before: "06:00:00"
+    action:
+      - service: light.turn_on
+        target:
+          entity_id: light.nursery_light
+        data:
+          brightness: 50
+          color_name: "red"
+
+  - alias: "Baby Monitor - Sleep Mode"
+    description: "Activate sleep mode when baby goes to sleep"
+    trigger:
+      - platform: event
+        event_type: call_service
+        event_data:
+          service: babymonitor.log_sleep
+          service_data:
+            sleep_type: "start"
+    action:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.nursery_sleep_mode
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Emma is going to sleep. Nursery in sleep mode."
+          title: "😴 Sleep Mode Activated"
+
+# Data Backup and Export (Advanced)
+  - alias: "Baby Monitor - Weekly Data Backup"
+    description: "Create weekly backup of baby data"
+    trigger:
+      - platform: time
+        at: "02:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - mon
+    action:
+      - service: shell_command.backup_baby_data
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Weekly baby monitor data backup completed"
+          title: "💾 Data Backup"
+
+# Shell command for backup (add to configuration.yaml)
+shell_command:
+  backup_baby_data: "cp /config/.storage/babymonitor_* /backup/baby_monitor/"
