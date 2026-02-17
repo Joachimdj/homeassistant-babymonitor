@@ -39,10 +39,75 @@ A comprehensive Home Assistant integration for monitoring and tracking baby care
 
 ## Installation
 
-1. Copy the `custom_components/babymonitor` folder to your Home Assistant `custom_components` directory
-2. Restart Home Assistant
-3. Add the integration via Configuration → Integrations → Add Integration → Baby Monitor
-4. Enter your baby's name to create the monitoring instance
+### Option 1: HACS Installation (Recommended)
+
+1. **Install HACS** if you haven't already: [HACS Installation Guide](https://hacs.xyz/docs/setup/prerequisites)
+
+2. **Add this repository to HACS:**
+   - Go to HACS → Integrations
+   - Click the three dots menu (⋮) → Custom repositories
+   - Add repository URL: `https://github.com/joachimdittman/homeassistant-babymonitor`
+   - Category: Integration
+   - Click ADD
+
+3. **Install the integration:**
+   - Search for "Baby Monitor" in HACS
+   - Click DOWNLOAD
+   - Restart Home Assistant
+
+4. **Add the integration:**
+   - Go to Settings → Devices & Services → Add Integration
+   - Search for "Baby Monitor"
+   - Enter your baby's name (e.g., "Anika")
+
+### Option 2: Manual Installation via Git
+
+1. **Clone the repository** to your Home Assistant custom_components directory:
+   ```bash
+   cd /config/custom_components/
+   git clone https://github.com/joachimdittman/homeassistant-babymonitor.git babymonitor
+   ```
+
+2. **Move the integration files:**
+   ```bash
+   cd babymonitor
+   mv custom_components/babymonitor/* .
+   rm -rf custom_components/
+   ```
+
+3. **Restart Home Assistant**
+
+4. **Add the integration** via Settings → Devices & Services → Add Integration → Baby Monitor
+
+### Option 3: Manual Installation via Download
+
+1. **Download the repository** as a ZIP file from GitHub
+2. **Extract** the ZIP file
+3. **Copy** the `custom_components/babymonitor` folder to your Home Assistant `custom_components` directory:
+   ```
+   /config/custom_components/babymonitor/
+   ```
+4. **Restart Home Assistant**
+5. **Add the integration** via Settings → Devices & Services
+
+### Verification
+
+After installation, your directory structure should look like:
+```
+/config/
+├── custom_components/
+│   └── babymonitor/
+│       ├── __init__.py
+│       ├── manifest.json
+│       ├── const.py
+│       ├── config_flow.py
+│       ├── storage.py
+│       ├── sensor.py
+│       ├── button.py
+│       ├── services.py
+│       └── services.yaml
+└── configuration.yaml
+```
 
 ## Configuration
 
