@@ -365,6 +365,12 @@ days_to_show: 7
 
 For issues, feature requests, or questions, please visit the GitHub repository.
 
+## Additional Resources
+
+- [Lovelace Dashboard Examples](docs/lovelace_examples.yaml) - Complete dashboard configurations
+- [Example Automations](docs/example_automations.yaml) - Ready-to-use automation examples
+- [Installation Guide](docs/GITHUB_SETUP.md) - Detailed setup instructions
+
 ## License
 
 This project is licensed under the MIT License.
