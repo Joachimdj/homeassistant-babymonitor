@@ -13,13 +13,11 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     DOMAIN, 
-    ATTR_BABY_NAME,
     ACTIVITY_DIAPER_CHANGE,
     ACTIVITY_FEEDING,
     ACTIVITY_SLEEP,
     ACTIVITY_TEMPERATURE,
 )
-from .storage import BabyMonitorStorage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,16 +28,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Baby Monitor sensors from a config entry."""
-    baby_name = config_entry.data[ATTR_BABY_NAME]
-    
-    # Initialize storage
-    storage = BabyMonitorStorage(hass, baby_name)
-    await storage.async_load()
-    
-    # Store storage instance for use by other platforms
-    if DOMAIN not in hass.data:
-        hass.data[DOMAIN] = {}
-    hass.data[DOMAIN][config_entry.entry_id] = {"storage": storage}
+    # Get storage and baby name from data set up in __init__.py
+    data = hass.data[DOMAIN][config_entry.entry_id]
+    baby_name = data["baby_name"]
+    storage = data["storage"]
     
     sensors = [
         LastDiaperChangeSensor(baby_name, storage),

@@ -12,7 +12,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
-    ATTR_BABY_NAME,
     ACTIVITY_DIAPER_CHANGE,
     ACTIVITY_FEEDING,
     ACTIVITY_SLEEP,
@@ -36,8 +35,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Baby Monitor buttons from a config entry."""
-    baby_name = config_entry.data[ATTR_BABY_NAME]
-    storage = hass.data[DOMAIN][config_entry.entry_id]["storage"]
+    # Get storage and baby name from data set up in __init__.py
+    data = hass.data[DOMAIN][config_entry.entry_id]
+    baby_name = data["baby_name"]
+    storage = data["storage"]
     
     buttons = [
         QuickDiaperWetButton(baby_name, storage),

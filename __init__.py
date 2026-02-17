@@ -26,8 +26,21 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Baby Monitor from a config entry."""
+    from .storage import BabyMonitorStorage
+    from .const import ATTR_BABY_NAME
+    
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+    
+    # Initialize storage
+    baby_name = entry.data[ATTR_BABY_NAME]
+    storage = BabyMonitorStorage(hass, baby_name)
+    await storage.async_load()
+    
+    # Store data for platforms to access
+    hass.data[DOMAIN][entry.entry_id] = {
+        "storage": storage,
+        "baby_name": baby_name
+    }
     
     # Set up services (only once)
     if len(hass.data[DOMAIN]) == 1:
