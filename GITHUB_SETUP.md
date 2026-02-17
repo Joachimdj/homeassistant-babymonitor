@@ -53,12 +53,11 @@ Replace `YOUR_USERNAME` with your GitHub username.
 ```bash
 cd /config/custom_components/
 git clone https://github.com/YOUR_USERNAME/homeassistant-babymonitor.git babymonitor
-cd babymonitor && mv custom_components/babymonitor/* . && rm -rf custom_components/
 ```
 
 ### Manual Download:
 1. Download ZIP from GitHub
-2. Extract `custom_components/babymonitor/` to `/config/custom_components/babymonitor/`
+2. Extract all Python files to `/config/custom_components/babymonitor/`
 
 ## Repository Features:
 
@@ -71,14 +70,22 @@ cd babymonitor && mv custom_components/babymonitor/* . && rm -rf custom_componen
 
 ## File Structure:
 ```
-homeassistant-babymonitor/
-├── custom_components/babymonitor/    # Main integration
-├── README.md                         # Main documentation
-├── LICENSE                           # MIT License
-├── hacs.json                         # HACS configuration
-├── .gitignore                        # Git ignore file
-├── lovelace_examples.yaml            # Dashboard examples
-└── example_automations.yaml          # Automation examples
+homeassistant-babymonitor/          # Repository root
+├── __init__.py                     # Main integration setup
+├── manifest.json                   # Integration metadata
+├── const.py                        # Constants
+├── config_flow.py                  # Configuration UI
+├── storage.py                      # Data storage
+├── sensor.py                       # Sensor entities
+├── button.py                       # Button entities
+├── services.py                     # Service implementations
+├── services.yaml                   # Service definitions
+├── README.md                       # Main documentation
+├── LICENSE                         # MIT License
+├── hacs.json                       # HACS configuration
+├── .gitignore                      # Git ignore file
+├── lovelace_examples.yaml          # Dashboard examples
+└── example_automations.yaml        # Automation examples
 ```
 
 ## Next Steps:

@@ -68,24 +68,26 @@ A comprehensive Home Assistant integration for monitoring and tracking baby care
    git clone https://github.com/joachimdittman/homeassistant-babymonitor.git babymonitor
    ```
 
-2. **Move the integration files:**
-   ```bash
-   cd babymonitor
-   mv custom_components/babymonitor/* .
-   rm -rf custom_components/
-   ```
+2. **Restart Home Assistant**
 
-3. **Restart Home Assistant**
-
-4. **Add the integration** via Settings → Devices & Services → Add Integration → Baby Monitor
+3. **Add the integration** via Settings → Devices & Services → Add Integration → Baby Monitor
 
 ### Option 3: Manual Installation via Download
 
 1. **Download the repository** as a ZIP file from GitHub
 2. **Extract** the ZIP file
-3. **Copy** the `custom_components/babymonitor` folder to your Home Assistant `custom_components` directory:
+3. **Copy** all the Python files to your Home Assistant `custom_components/babymonitor/` directory:
    ```
    /config/custom_components/babymonitor/
+   ├── __init__.py
+   ├── manifest.json
+   ├── const.py
+   ├── config_flow.py
+   ├── storage.py
+   ├── sensor.py
+   ├── button.py
+   ├── services.py
+   └── services.yaml
    ```
 4. **Restart Home Assistant**
 5. **Add the integration** via Settings → Devices & Services
