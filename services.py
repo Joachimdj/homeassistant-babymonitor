@@ -259,6 +259,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged temperature for {baby_name}: {temperature}°C")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_weight(call: ServiceCall) -> None:
         """Handle weight logging service call."""
@@ -276,6 +278,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged weight for {baby_name}: {weight}kg")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_height(call: ServiceCall) -> None:
         """Handle height logging service call."""
@@ -293,6 +297,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged height for {baby_name}: {height}cm")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_medication(call: ServiceCall) -> None:
         """Handle medication logging service call."""
@@ -312,6 +318,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged medication for {baby_name}: {medication_name}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_milestone(call: ServiceCall) -> None:
         """Handle milestone logging service call."""
@@ -329,6 +337,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged milestone for {baby_name}: {milestone_name}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_bath(call: ServiceCall) -> None:
         """Handle bath logging service call."""
@@ -346,6 +356,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged bath for {baby_name}: {bath_type}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_tummy_time(call: ServiceCall) -> None:
         """Handle tummy time logging service call."""
@@ -363,6 +375,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged tummy time for {baby_name}: {duration} minutes")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_crying(call: ServiceCall) -> None:
         """Handle crying logging service call."""
@@ -382,6 +396,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged crying episode for {baby_name}: {intensity} intensity")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_mood(call: ServiceCall) -> None:
         """Handle mood logging service call."""
@@ -399,6 +415,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged mood for {baby_name}: {mood_type}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_environmental(call: ServiceCall) -> None:
         """Handle environmental conditions logging service call."""
@@ -418,6 +436,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged environmental conditions for {baby_name}: {room_temp}°C, {humidity}%")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_caregiver(call: ServiceCall) -> None:
         """Handle caregiver change logging service call."""
@@ -435,6 +455,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged caregiver change for {baby_name}: {caregiver_name}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     # Register services
     hass.services.async_register(
