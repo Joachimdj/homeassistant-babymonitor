@@ -8,6 +8,8 @@ from datetime import datetime
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.entity_component import async_update_entity
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 
 from .const import (
     DOMAIN,
@@ -509,10 +511,8 @@ async def _get_storage_for_baby(hass: HomeAssistant, baby_name: str):
 
 async def _update_sensors(hass: HomeAssistant, baby_name: str) -> None:
     """Trigger sensor updates for the specified baby."""
-    from homeassistant.helpers import entity_registry
-    
     # Get entity registry
-    ent_reg = entity_registry.async_get(hass)
+    ent_reg = async_get_entity_registry(hass)
     
     # Find all sensors for this baby
     baby_id = baby_name.lower().replace(" ", "_")
@@ -522,9 +522,4 @@ async def _update_sensors(hass: HomeAssistant, baby_name: str) -> None:
         if entity.unique_id and entity.unique_id.startswith(f"{baby_id}_"):
             if entity.domain == "sensor":
                 # Trigger entity update
-                hass.async_create_task(
-                    hass.helpers.entity_component.async_update_entity(entity.entity_id)
-                )
-    
-    _LOGGER.error(f"No storage found for baby: {baby_name}")
-    return None
+                await async_update_entity(hass, entity.entity_id)

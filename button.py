@@ -8,6 +8,8 @@ from typing import Any
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_component import async_update_entity
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
@@ -83,10 +85,11 @@ class BabyMonitorButtonBase(ButtonEntity):
     
     async def _trigger_sensor_updates(self) -> None:
         """Trigger sensor updates after button press."""
-        from homeassistant.helpers import entity_registry
+        if not self.hass:
+            return
         
         # Get entity registry
-        ent_reg = entity_registry.async_get(self.hass)
+        ent_reg = async_get_entity_registry(self.hass)
         
         # Find all sensors for this baby
         baby_id = self._baby_name.lower().replace(" ", "_")
@@ -96,9 +99,7 @@ class BabyMonitorButtonBase(ButtonEntity):
             if entity.unique_id and entity.unique_id.startswith(f"{baby_id}_"):
                 if entity.domain == "sensor":
                     # Trigger entity update
-                    self.hass.async_create_task(
-                        self.hass.helpers.entity_component.async_update_entity(entity.entity_id)
-                    )
+                    await async_update_entity(self.hass, entity.entity_id)
 
 
 class QuickDiaperWetButton(BabyMonitorButtonBase):
