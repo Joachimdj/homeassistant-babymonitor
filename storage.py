@@ -147,3 +147,14 @@ class BabyMonitorStorage:
             activity for activity in self._data["activities"]
             if datetime.fromisoformat(activity["timestamp"]) >= cutoff_date
         ]
+    
+    def get_daily_activities(self) -> list[dict]:
+        """Get all activities from today (since 00:00:00)."""
+        today = datetime.now().date()
+        today_start = datetime.combine(today, datetime.min.time())
+        today_end = datetime.combine(today, datetime.max.time())
+        
+        return [
+            activity for activity in self._data["activities"]
+            if today_start <= datetime.fromisoformat(activity["timestamp"]) <= today_end
+        ]
