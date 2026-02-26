@@ -1,0 +1,81 @@
+# Simple Dashboard Card to Show Today's Diaper Counts
+# Copy this entire card into your Lovelace dashboard
+# The counts will automatically update when you log diaper changes via buttons or services!
+
+# OPTION 1: Simple List (Recommended)
+type: entities
+title: Today's Diapers
+entities:
+  - entity: sensor.anika_total_diaper_changes
+    name: Total Changes Today
+    type: attribute
+    attribute: today_count
+  - entity: sensor.anika_total_diaper_changes
+    name: Wet Diapers Today
+    type: attribute
+    attribute: wet_today
+  - entity: sensor.anika_total_diaper_changes
+    name: Dirty Diapers Today
+    type: attribute
+    attribute: dirty_today
+
+---
+
+# OPTION 2: With Icons
+type: entities
+title: 💩 Today's Diaper Changes
+show_header_toggle: false
+entities:
+  - type: attribute
+    entity: sensor.anika_total_diaper_changes
+    attribute: today_count
+    name: Total Changes
+    icon: mdi:baby-carriage
+  - type: attribute
+    entity: sensor.anika_total_diaper_changes
+    attribute: wet_today
+    name: Wet Diapers
+    icon: mdi:water
+  - type: attribute
+    entity: sensor.anika_total_diaper_changes
+    attribute: dirty_today
+    name: Dirty Diapers
+    icon: mdi:delete-variant
+
+---
+
+# OPTION 3: Glance Card (Visual Overview)
+type: glance
+title: Diaper Stats
+columns: 3
+entities:
+  - entity: sensor.anika_total_diaper_changes
+    name: Total
+    icon: mdi:baby-carriage
+  - entity: sensor.anika_total_diaper_changes
+    name: Wet
+    icon: mdi:water
+    attribute: wet_today
+  - entity: sensor.anika_total_diaper_changes
+    name: Dirty
+    icon: mdi:delete-variant
+    attribute: dirty_today
+
+---
+
+# OPTION 4: Markdown Card with Text
+type: markdown
+content: |
+  ### 🍼 Today's Diaper Report
+  
+  **Total Changes:** {{ state_attr('sensor.anika_total_diaper_changes', 'today_count') }}
+  
+  💧 **Wet:** {{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') }}
+  
+  💩 **Dirty:** {{ state_attr('sensor.anika_total_diaper_changes', 'dirty_today') }}
+
+---
+
+# IMPORTANT: Replace "anika" with your baby's name (lowercase)
+# For example, if your baby is named "Emma", use:
+# sensor.emma_total_diaper_changes

@@ -186,6 +186,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged diaper change for {baby_name}: {diaper_type}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_feeding(call: ServiceCall) -> None:
         """Handle feeding logging service call."""
@@ -207,6 +209,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 }
             )
             _LOGGER.info(f"Logged feeding for {baby_name}: {feeding_type}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_sleep(call: ServiceCall) -> None:
         """Handle sleep logging service call."""
@@ -234,6 +238,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             
             await storage.async_add_activity(ACTIVITY_SLEEP, data)
             _LOGGER.info(f"Logged sleep for {baby_name}: {sleep_type}")
+            # Trigger sensor updates
+            await _update_sensors(hass, baby_name)
     
     async def log_temperature(call: ServiceCall) -> None:
         """Handle temperature logging service call."""
@@ -498,6 +504,27 @@ async def _get_storage_for_baby(hass: HomeAssistant, baby_name: str):
             storage = data["storage"]
             if storage._baby_name == baby_name:
                 return storage
+    return None
+
+
+async def _update_sensors(hass: HomeAssistant, baby_name: str) -> None:
+    """Trigger sensor updates for the specified baby."""
+    from homeassistant.helpers import entity_registry
+    
+    # Get entity registry
+    ent_reg = entity_registry.async_get(hass)
+    
+    # Find all sensors for this baby
+    baby_id = baby_name.lower().replace(" ", "_")
+    
+    # Update all entities for this baby
+    for entity in ent_reg.entities.values():
+        if entity.unique_id and entity.unique_id.startswith(f"{baby_id}_"):
+            if entity.domain == "sensor":
+                # Trigger entity update
+                hass.async_create_task(
+                    hass.helpers.entity_component.async_update_entity(entity.entity_id)
+                )
     
     _LOGGER.error(f"No storage found for baby: {baby_name}")
     return None

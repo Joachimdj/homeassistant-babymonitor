@@ -432,6 +432,27 @@ The data persists across Home Assistant restarts and can be used with the built-
 
 ## Lovelace Dashboard Examples
 
+### Simple Diaper Count Display (Copy & Paste Ready)
+```yaml
+# Shows today's wet and dirty diaper counts
+type: entities
+title: Today's Diapers
+entities:
+  - entity: sensor.anika_total_diaper_changes
+    name: Total Changes
+    type: attribute
+    attribute: today_count
+  - entity: sensor.anika_total_diaper_changes
+    name: Wet Diapers
+    type: attribute
+    attribute: wet_today
+  - entity: sensor.anika_total_diaper_changes
+    name: Dirty Diapers
+    type: attribute
+    attribute: dirty_today
+```
+**Note:** Replace `anika` with your baby's name (lowercase).
+
 ### Quick Actions Card
 ```yaml
 type: entities
@@ -511,8 +532,45 @@ For issues, feature requests, or questions, please visit the GitHub repository.
 ## Additional Resources
 
 - [Lovelace Dashboard Examples](docs/lovelace_examples.yaml) - Complete dashboard configurations
+- [Simple Diaper Card Example](docs/simple_diaper_card_example.yaml) - Ready-to-use diaper tracking card
 - [Example Automations](docs/example_automations.yaml) - Ready-to-use automation examples
 - [Installation Guide](docs/GITHUB_SETUP.md) - Detailed setup instructions
+
+## Troubleshooting
+
+### Diaper counts not showing in dashboard
+
+If you're trying to display dirty/wet diaper counts and they're not showing or updating:
+
+1. **Check your sensor name** - Make sure you're using the correct baby name (lowercase with underscores):
+   - ✅ Correct: `sensor.anika_total_diaper_changes`
+   - ❌ Wrong: `sensor.Anika_total_diaper_changes`
+
+2. **Verify the sensor exists** - Go to Developer Tools → States and search for your sensor
+
+3. **Check the attributes** - In Developer Tools → States, click on `sensor.BABYNAME_total_diaper_changes` and verify these attributes exist:
+   - `today_count`
+   - `wet_today`
+   - `dirty_today`
+
+4. **Log some activities** - Use the quick action buttons to log a few diaper changes, then check if the counts update
+   - **Note**: As of the latest version, sensors automatically update when you log activities via buttons or services
+
+5. **Restart Home Assistant** - After installation, a restart may be needed for entities to appear
+   - After updating to newer versions with auto-update features, restart to activate the fix
+
+6. **Clear browser cache** - Sometimes the dashboard caches old values
+   - Hold Shift and click Reload in your browser
+   - Or press Ctrl+Shift+R (Windows/Linux) or Cmd+Shift+R (Mac)
+
+### Example test template
+Test in Developer Tools → Template:
+```yaml
+{% set sensor = 'sensor.anika_total_diaper_changes' %}
+Today: {{ state_attr(sensor, 'today_count') }}
+Wet: {{ state_attr(sensor, 'wet_today') }}
+Dirty: {{ state_attr(sensor, 'dirty_today') }}
+```
 
 ## License
 

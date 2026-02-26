@@ -80,6 +80,25 @@ class BabyMonitorButtonBase(ButtonEntity):
             "manufacturer": "Baby Monitor",
             "model": "Baby Care Tracker",
         }
+    
+    async def _trigger_sensor_updates(self) -> None:
+        """Trigger sensor updates after button press."""
+        from homeassistant.helpers import entity_registry
+        
+        # Get entity registry
+        ent_reg = entity_registry.async_get(self.hass)
+        
+        # Find all sensors for this baby
+        baby_id = self._baby_name.lower().replace(" ", "_")
+        
+        # Update all sensor entities for this baby
+        for entity in ent_reg.entities.values():
+            if entity.unique_id and entity.unique_id.startswith(f"{baby_id}_"):
+                if entity.domain == "sensor":
+                    # Trigger entity update
+                    self.hass.async_create_task(
+                        self.hass.helpers.entity_component.async_update_entity(entity.entity_id)
+                    )
 
 
 class QuickDiaperWetButton(BabyMonitorButtonBase):
@@ -95,6 +114,7 @@ class QuickDiaperWetButton(BabyMonitorButtonBase):
             ACTIVITY_DIAPER_CHANGE,
             {"diaper_type": DIAPER_WET, "notes": "Quick log"}
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickDiaperDirtyButton(BabyMonitorButtonBase):
@@ -110,6 +130,7 @@ class QuickDiaperDirtyButton(BabyMonitorButtonBase):
             ACTIVITY_DIAPER_CHANGE,
             {"diaper_type": DIAPER_DIRTY, "notes": "Quick log"}
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickDiaperBothButton(BabyMonitorButtonBase):
@@ -125,6 +146,7 @@ class QuickDiaperBothButton(BabyMonitorButtonBase):
             ACTIVITY_DIAPER_CHANGE,
             {"diaper_type": DIAPER_BOTH, "notes": "Quick log"}
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickFeedingBottleButton(BabyMonitorButtonBase):
@@ -145,6 +167,7 @@ class QuickFeedingBottleButton(BabyMonitorButtonBase):
                 "notes": "Quick log"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickFeedingBreastLeftButton(BabyMonitorButtonBase):
@@ -164,6 +187,7 @@ class QuickFeedingBreastLeftButton(BabyMonitorButtonBase):
                 "notes": "Quick log - Left breast"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickFeedingBreastRightButton(BabyMonitorButtonBase):
@@ -183,6 +207,7 @@ class QuickFeedingBreastRightButton(BabyMonitorButtonBase):
                 "notes": "Quick log - Right breast"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickFeedingBreastBothButton(BabyMonitorButtonBase):
@@ -202,6 +227,7 @@ class QuickFeedingBreastBothButton(BabyMonitorButtonBase):
                 "notes": "Quick log - Both breasts"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickSleepStartButton(BabyMonitorButtonBase):
@@ -220,6 +246,7 @@ class QuickSleepStartButton(BabyMonitorButtonBase):
                 "notes": "Sleep started"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickSleepEndButton(BabyMonitorButtonBase):
@@ -250,6 +277,7 @@ class QuickSleepEndButton(BabyMonitorButtonBase):
                 "notes": f"Sleep ended - Duration: {duration // 60}h {duration % 60}m"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickBathButton(BabyMonitorButtonBase):
@@ -267,6 +295,7 @@ class QuickBathButton(BabyMonitorButtonBase):
                 "notes": "Quick bath logged"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickTummyTimeButton(BabyMonitorButtonBase):
@@ -284,6 +313,7 @@ class QuickTummyTimeButton(BabyMonitorButtonBase):
                 "notes": "Tummy time session completed"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickHappyMoodButton(BabyMonitorButtonBase):
@@ -301,6 +331,7 @@ class QuickHappyMoodButton(BabyMonitorButtonBase):
                 "notes": "Baby is happy and content"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickCalmMoodButton(BabyMonitorButtonBase):
@@ -318,6 +349,7 @@ class QuickCalmMoodButton(BabyMonitorButtonBase):
                 "notes": "Baby is calm and relaxed"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class QuickCryingButton(BabyMonitorButtonBase):
@@ -336,6 +368,7 @@ class QuickCryingButton(BabyMonitorButtonBase):
                 "notes": "Crying episode started"
             }
         )
+        await self._trigger_sensor_updates()
 
 
 class LogCaregiverButton(BabyMonitorButtonBase):
@@ -354,3 +387,4 @@ class LogCaregiverButton(BabyMonitorButtonBase):
                 "notes": "Caregiver changed"
             }
         )
+        await self._trigger_sensor_updates()
