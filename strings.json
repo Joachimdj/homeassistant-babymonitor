@@ -1,0 +1,47 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Baby Monitor",
+        "description": "Enter your baby's name to create a monitoring profile.",
+        "data": {
+          "baby_name": "Baby's Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_baby_name": "Invalid baby name",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "A monitor for this baby is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Baby Monitor Settings",
+        "description": "Configure daily goals and thresholds for {baby_name}. These settings help track if your baby is meeting recommended care guidelines.",
+        "data": {
+          "min_diapers_per_day": "Minimum diaper changes per day",
+          "min_wet_diapers_per_day": "Minimum wet diapers per day",
+          "min_feedings_per_day": "Minimum feedings per day",
+          "min_sleep_hours_per_day": "Minimum sleep hours per day",
+          "target_tummy_time_minutes": "Target tummy time (minutes per day)",
+          "feeding_reminder_hours": "Feeding reminder interval (hours)",
+          "diaper_reminder_hours": "Diaper change reminder interval (hours)"
+        },
+        "data_description": {
+          "min_diapers_per_day": "Total diaper changes expected per day (typical: 6-12)",
+          "min_wet_diapers_per_day": "Wet diapers to monitor hydration (typical: 4-6)",
+          "min_feedings_per_day": "Number of feedings per day (typical: 6-12)",
+          "min_sleep_hours_per_day": "Hours of sleep per day (typical: 12-16)",
+          "target_tummy_time_minutes": "Daily tummy time goal (typical: 15-30 minutes)",
+          "feeding_reminder_hours": "Hours between feedings before reminder",
+          "diaper_reminder_hours": "Hours since last change before reminder"
+        }
+      }
+    }
+  }
+}

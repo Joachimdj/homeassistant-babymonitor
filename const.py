@@ -93,3 +93,21 @@ CRYING_INTENSE = "intense"
 BATH_FULL = "full_bath"
 BATH_SPONGE = "sponge_bath"
 BATH_HAIR_WASH = "hair_wash"
+
+# Configuration options
+CONF_MIN_DIAPERS_PER_DAY = "min_diapers_per_day"
+CONF_MIN_WET_DIAPERS_PER_DAY = "min_wet_diapers_per_day"
+CONF_MIN_FEEDINGS_PER_DAY = "min_feedings_per_day"
+CONF_MIN_SLEEP_HOURS_PER_DAY = "min_sleep_hours_per_day"
+CONF_TARGET_TUMMY_TIME_MINUTES = "target_tummy_time_minutes"
+CONF_FEEDING_REMINDER_HOURS = "feeding_reminder_hours"
+CONF_DIAPER_REMINDER_HOURS = "diaper_reminder_hours"
+
+# Default values for configuration options
+DEFAULT_MIN_DIAPERS_PER_DAY = 6
+DEFAULT_MIN_WET_DIAPERS_PER_DAY = 4
+DEFAULT_MIN_FEEDINGS_PER_DAY = 6
+DEFAULT_MIN_SLEEP_HOURS_PER_DAY = 12
+DEFAULT_TARGET_TUMMY_TIME_MINUTES = 15
+DEFAULT_FEEDING_REMINDER_HOURS = 3
+DEFAULT_DIAPER_REMINDER_HOURS = 4

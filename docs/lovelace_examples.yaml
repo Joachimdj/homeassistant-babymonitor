@@ -82,6 +82,116 @@ views:
             name: Total Sleep
             icon: mdi:sleep
 
+  - title: Goals & Status
+    path: goals
+    cards:
+      - type: markdown
+        content: |
+          # 🎯 Daily Goals Tracking
+          Monitor progress toward daily care goals
+        
+      - type: entities
+        title: Progress Toward Daily Goals
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: diaper_status
+            name: Diaper Changes Status
+            icon: mdi:baby-carriage
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: progress_percentage
+            name: Diaper Changes Progress
+            icon: mdi:progress-check
+            suffix: "%"
+          - type: divider
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: wet_diaper_status
+            name: Wet Diapers Status
+            icon: mdi:water
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: wet_today
+            name: Wet Diapers Today
+            icon: mdi:water
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: min_wet_diapers_goal
+            name: Wet Diapers Goal
+            icon: mdi:target
+          - type: divider
+          - type: attribute
+            entity: sensor.anika_total_feedings
+            attribute: feeding_status
+            name: Feeding Status
+            icon: mdi:bottle-tonic-skull
+          - type: attribute
+            entity: sensor.anika_total_feedings
+            attribute: progress_percentage
+            name: Feeding Progress
+            icon: mdi:progress-check
+            suffix: "%"
+          - type: divider
+          - type: attribute
+            entity: sensor.anika_tummy_time_today
+            attribute: tummy_time_status
+            name: Tummy Time Status
+            icon: mdi:baby
+          - type: attribute
+            entity: sensor.anika_tummy_time_today
+            attribute: progress_percentage
+            name: Tummy Time Progress
+            icon: mdi:progress-check
+            suffix: "%"
+
+      - type: markdown
+        title: Goals Summary
+        content: |
+          ### Today's Progress
+          
+          **Diaper Changes:** {{ state_attr('sensor.anika_total_diaper_changes', 'today_count') }} / {{ state_attr('sensor.anika_total_diaper_changes', 'min_diapers_goal') }}
+          - Status: **{{ state_attr('sensor.anika_total_diaper_changes', 'diaper_status') }}**
+          - Progress: {{ state_attr('sensor.anika_total_diaper_changes', 'progress_percentage') }}%
+          
+          **Wet Diapers:** {{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') }} / {{ state_attr('sensor.anika_total_diaper_changes', 'min_wet_diapers_goal') }}
+          - Status: **{{ state_attr('sensor.anika_total_diaper_changes', 'wet_diaper_status') }}**
+          
+          **Feedings:** {{ state_attr('sensor.anika_total_feedings', 'today_count') }} / {{ state_attr('sensor.anika_total_feedings', 'min_feedings_goal') }}
+          - Status: **{{ state_attr('sensor.anika_total_feedings', 'feeding_status') }}**
+          - Progress: {{ state_attr('sensor.anika_total_feedings', 'progress_percentage') }}%
+          
+          **Tummy Time:** {{ states('sensor.anika_tummy_time_today') }} / {{ state_attr('sensor.anika_tummy_time_today', 'target_daily_minutes') }} min
+          - Status: **{{ state_attr('sensor.anika_tummy_time_today', 'tummy_time_status') }}**
+          - Progress: {{ state_attr('sensor.anika_tummy_time_today', 'progress_percentage') }}%
+          
+          ---
+          
+          💡 **Tip:** You can adjust these goals in Settings → Devices & Services → Baby Monitor → Configure
+
+      - type: gauge
+        name: Daily Diaper Progress
+        entity: sensor.anika_total_diaper_changes
+        attribute: progress_percentage
+        min: 0
+        max: 100
+        severity:
+          green: 100
+          yellow: 60
+          red: 0
+
+      - type: gauge
+        name: Daily Feeding Progress
+        entity: sensor.anika_total_feedings
+        attribute: progress_percentage
+        min: 0
+        max: 100
+        severity:
+          green: 100
+          yellow: 60
+          red: 0
+
   - title: Statistics
     path: stats
     cards:
@@ -392,6 +502,102 @@ views:
         line_color: orange
         line_width: 2
         animate: true
+```
+
+## Diaper Tracking Dashboard
+
+```yaml
+title: Diaper Tracking
+views:
+  - title: Diaper Stats
+    path: diaper-stats
+    cards:
+      # Simple card showing today's diaper counts by type
+      - type: entities
+        title: 🍼 Today's Diaper Changes
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: today_count
+            name: Total Changes Today
+            icon: mdi:baby-carriage
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: wet_today
+            name: Wet Diapers
+            icon: mdi:water
+          - type: attribute
+            entity: sensor.anika_total_diaper_changes
+            attribute: dirty_today
+            name: Dirty Diapers
+            icon: mdi:delete-variant
+          - type: divider
+          - entity: sensor.anika_diaper_change_frequency
+            name: Average Per Day (7d)
+            icon: mdi:chart-line
+
+      # Visual glance card for quick overview
+      - type: glance
+        title: Diaper Summary
+        show_name: true
+        show_state: true
+        columns: 3
+        entities:
+          - entity: sensor.anika_total_diaper_changes
+            name: Today Total
+            icon: mdi:baby-carriage
+            attribute: today_count
+          - entity: sensor.anika_total_diaper_changes
+            name: Wet
+            icon: mdi:water
+            attribute: wet_today
+          - entity: sensor.anika_total_diaper_changes
+            name: Dirty
+            icon: mdi:delete-variant
+            attribute: dirty_today
+
+      # Detailed breakdown with weekly comparison
+      - type: markdown
+        title: Diaper Change Details
+        content: |
+          ### Today's Diaper Changes
+          
+          **Total:** {{ state_attr('sensor.anika_total_diaper_changes', 'today_count') }} changes
+          
+          - 💧 **Wet diapers:** {{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') }}
+          - 💩 **Dirty diapers:** {{ state_attr('sensor.anika_total_diaper_changes', 'dirty_today') }}
+          
+          ---
+          
+          ### Weekly Average
+          
+          **Frequency:** {{ states('sensor.anika_diaper_change_frequency') }} changes per day
+          
+          **This Week:**
+          - Total changes: {{ state_attr('sensor.anika_diaper_change_frequency', 'changes_this_week') }}
+          - Wet changes: {{ state_attr('sensor.anika_diaper_change_frequency', 'wet_changes_week') }}
+          - Dirty changes: {{ state_attr('sensor.anika_diaper_change_frequency', 'dirty_changes_week') }}
+          
+          Status: **{{ state_attr('sensor.anika_diaper_change_frequency', 'frequency_status') }}**
+          
+          *Normal range: {{ state_attr('sensor.anika_diaper_change_frequency', 'normal_range') }}*
+
+      # Recent diaper changes history
+      - type: entities
+        title: 📋 Recent Activity
+        show_header_toggle: false
+        entities:
+          - entity: sensor.anika_last_diaper_change
+            type: attribute
+            attribute: time_ago
+            name: Last Change
+            icon: mdi:clock-outline
+          - entity: sensor.anika_last_diaper_change
+            type: attribute
+            attribute: diaper_type
+            name: Type
+            icon: mdi:information-outline
 ```
 
 ## Usage Instructions

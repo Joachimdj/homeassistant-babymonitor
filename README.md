@@ -115,6 +115,34 @@ After installation, your directory structure should look like:
 
 The integration is configured through the UI. You can add multiple babies by adding the integration multiple times with different names.
 
+### Configuring Daily Goals and Thresholds
+
+After setting up the integration, you can customize daily goals and thresholds:
+
+1. Go to **Settings → Devices & Services**
+2. Find the **Baby Monitor** integration
+3. Click **Configure** (or the three dots menu → **Configure**)
+4. Adjust the following settings:
+
+**Daily Care Goals:**
+- **Minimum diaper changes per day** (default: 6) - Total expected diaper changes
+- **Minimum wet diapers per day** (default: 4) - Monitors hydration levels
+- **Minimum feedings per day** (default: 6) - Expected feeding frequency
+- **Minimum sleep hours per day** (default: 12) - Total sleep target
+- **Target tummy time** (default: 15 minutes) - Daily tummy time goal
+
+**Reminder Intervals:**
+- **Feeding reminder interval** (default: 3 hours) - Time between feedings
+- **Diaper change reminder interval** (default: 4 hours) - Max time between changes
+
+These settings help sensors provide status information like "Meeting goal" or "Below goal" in their attributes, making it easy to track if your baby is meeting care recommendations.
+
+**Example:**
+- Set minimum wet diapers to 4
+- Check `sensor.anika_total_diaper_changes` attributes
+- View `wet_diaper_status`: "Meeting goal" or "Below goal"
+- View `progress_percentage` to see progress toward goal
+
 ## Entities Created
 
 For a baby named "Anika", the following entities will be created:
@@ -123,14 +151,17 @@ For a baby named "Anika", the following entities will be created:
 - `sensor.anika_last_diaper_change` - Last diaper change time and details
 - `sensor.anika_last_feeding` - Last feeding time and details  
 - `sensor.anika_last_sleep` - Last sleep session details
-- `sensor.anika_total_diaper_changes` - Total diaper changes with daily breakdown
-- `sensor.anika_total_feedings` - Total feedings with daily statistics
+- `sensor.anika_total_diaper_changes` - Total diaper changes with daily breakdown (includes `wet_today`, `dirty_today`, `diaper_status`, and `progress_percentage` attributes)
+- `sensor.anika_total_feedings` - Total feedings with daily statistics (includes `feeding_status` and `progress_percentage` based on configured goals)
 - `sensor.anika_total_sleep_sessions` - Total completed sleep sessions
 - `sensor.anika_average_sleep_duration` - Average sleep duration in minutes
 - `sensor.anika_average_feeding_amount` - Average feeding amount in ml
 - `sensor.anika_temperature` - Current/last recorded temperature
+- `sensor.anika_tummy_time_today` - Today's tummy time with `tummy_time_status` and `progress_percentage`
 - `sensor.anika_daily_summary` - Today's activity summary
 - `sensor.anika_weekly_summary` - Last 7 days activity summary
+
+**Note:** Many sensors include status attributes (e.g., "Meeting goal" or "Below goal") based on your configured daily goals. Use these for monitoring and automations.
 
 ### Buttons (Quick Actions)
 - `button.anika_quick_wet_diaper` - Log wet diaper change
@@ -295,6 +326,81 @@ automation:
           title: "Daily Baby Report"
 ```
 
+### Diaper Change Alert
+```yaml
+# Alert if wet diaper count is low (possible dehydration indicator)
+automation:
+  - alias: "Low Wet Diaper Alert"
+    trigger:
+      - platform: time
+        at: "18:00:00"
+    condition:
+      - condition: template
+        value_template: >
+          {{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') | int < 4 }}
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          message: >
+            Anika has only had {{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') }} wet diapers today.
+            Wet: {{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') }}, 
+            Dirty: {{ state_attr('sensor.anika_total_diaper_changes', 'dirty_today') }}
+          title: "Low Wet Diaper Count"
+```
+
+### Goal Status Alert
+```yaml
+# Alert when daily goals are not being met
+automation:
+  - alias: "Daily Care Goals Check"
+    trigger:
+      - platform: time
+        at: "17:00:00"
+    action:
+      - choose:
+          # Check diaper goal
+          - conditions:
+              - condition: template
+                value_template: >
+                  {{ state_attr('sensor.anika_total_diaper_changes', 'diaper_status') == 'Below goal' }}
+            sequence:
+              - service: notify.mobile_app_your_phone
+                data:
+                  message: >
+                    Anika's diaper changes are below goal today.
+                    Current: {{ state_attr('sensor.anika_total_diaper_changes', 'today_count') }}
+                    Goal: {{ state_attr('sensor.anika_total_diaper_changes', 'min_diapers_goal') }}
+                  title: "⚠️ Diaper Goal Not Met"
+          
+          # Check feeding goal
+          - conditions:
+              - condition: template
+                value_template: >
+                  {{ state_attr('sensor.anika_total_feedings', 'feeding_status') == 'Below goal' }}
+            sequence:
+              - service: notify.mobile_app_your_phone
+                data:
+                  message: >
+                    Anika's feedings are below goal today.
+                    Current: {{ state_attr('sensor.anika_total_feedings', 'today_count') }}
+                    Goal: {{ state_attr('sensor.anika_total_feedings', 'min_feedings_goal') }}
+                  title: "⚠️ Feeding Goal Not Met"
+          
+          # Check tummy time goal
+          - conditions:
+              - condition: template
+                value_template: >
+                  {{ state_attr('sensor.anika_tummy_time_today', 'tummy_time_status') == 'Below goal' }}
+            sequence:
+              - service: notify.mobile_app_your_phone
+                data:
+                  message: >
+                    Don't forget tummy time today!
+                    Current: {{ states('sensor.anika_tummy_time_today') }} min
+                    Goal: {{ state_attr('sensor.anika_tummy_time_today', 'target_daily_minutes') }} min
+                  title: "⚠️ Tummy Time Goal Not Met"
+```
+
 ### Sleep Duration Alert
 ```yaml
 # Alert if sleep session is very short
@@ -349,6 +455,43 @@ entities:
   - sensor.anika_last_sleep
   - sensor.anika_temperature
   - sensor.anika_daily_summary
+```
+
+### Diaper Tracking Card (Wet & Dirty Counts)
+```yaml
+type: entities
+title: Today's Diaper Changes
+entities:
+  # Total diaper changes today
+  - type: attribute
+    entity: sensor.anika_total_diaper_changes
+    attribute: today_count
+    name: Total Changes Today
+    icon: mdi:baby-carriage
+  # Wet diapers today
+  - type: attribute
+    entity: sensor.anika_total_diaper_changes
+    attribute: wet_today
+    name: Wet Diapers
+    icon: mdi:water
+  # Dirty diapers today
+  - type: attribute
+    entity: sensor.anika_total_diaper_changes
+    attribute: dirty_today
+    name: Dirty Diapers
+    icon: mdi:delete-variant
+```
+
+**Accessing diaper counts in templates:**
+```yaml
+# Get today's wet diaper count
+{{ state_attr('sensor.anika_total_diaper_changes', 'wet_today') }}
+
+# Get today's dirty diaper count
+{{ state_attr('sensor.anika_total_diaper_changes', 'dirty_today') }}
+
+# Get total changes today
+{{ state_attr('sensor.anika_total_diaper_changes', 'today_count') }}
 ```
 
 ### Statistics Card

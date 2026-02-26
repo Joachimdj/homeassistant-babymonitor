@@ -17,6 +17,16 @@ from .const import (
     ACTIVITY_FEEDING,
     ACTIVITY_SLEEP,
     ACTIVITY_TEMPERATURE,
+    CONF_MIN_DIAPERS_PER_DAY,
+    CONF_MIN_WET_DIAPERS_PER_DAY,
+    CONF_MIN_FEEDINGS_PER_DAY,
+    CONF_MIN_SLEEP_HOURS_PER_DAY,
+    CONF_TARGET_TUMMY_TIME_MINUTES,
+    DEFAULT_MIN_DIAPERS_PER_DAY,
+    DEFAULT_MIN_WET_DIAPERS_PER_DAY,
+    DEFAULT_MIN_FEEDINGS_PER_DAY,
+    DEFAULT_MIN_SLEEP_HOURS_PER_DAY,
+    DEFAULT_TARGET_TUMMY_TIME_MINUTES,
 )
 from .storage import BabyMonitorStorage
 
@@ -33,32 +43,33 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][config_entry.entry_id]
     baby_name = data["baby_name"]
     storage = data["storage"]
+    options = data["options"]
     
     sensors = [
-        LastDiaperChangeSensor(baby_name, storage),
-        LastFeedingSensor(baby_name, storage),
-        LastSleepSensor(baby_name, storage),
-        TotalDiaperChangesSensor(baby_name, storage),
-        TotalFeedingsSensor(baby_name, storage),
-        TotalSleepSessionsSensor(baby_name, storage),
-        AverageSleepDurationSensor(baby_name, storage),
-        AverageFeedingAmountSensor(baby_name, storage),
-        DailySummaryDisplaySensor(baby_name, storage),
-        WeeklySummaryDisplaySensor(baby_name, storage),
-        CurrentTemperatureSensor(baby_name, storage),
-        LastBathSensor(baby_name, storage),
-        TummyTimeTodaySensor(baby_name, storage),
-        SleepQualityScoreSensor(baby_name, storage),
-        GrowthPercentileSensor(baby_name, storage),
-        NextFeedingPredictionSensor(baby_name, storage),
-        MoodAnalysisSensor(baby_name, storage),
-        CryingAnalysisSensor(baby_name, storage),
-        EnvironmentalConditionsSensor(baby_name, storage),
-        CurrentCaregiverSensor(baby_name, storage),
-        GrowthVelocitySensor(baby_name, storage),
-        SleepRegressionIndicatorSensor(baby_name, storage),
-        DiaperChangeFrequencySensor(baby_name, storage),
-        FeedingEfficiencySensor(baby_name, storage),
+        LastDiaperChangeSensor(baby_name, storage, options),
+        LastFeedingSensor(baby_name, storage, options),
+        LastSleepSensor(baby_name, storage, options),
+        TotalDiaperChangesSensor(baby_name, storage, options),
+        TotalFeedingsSensor(baby_name, storage, options),
+        TotalSleepSessionsSensor(baby_name, storage, options),
+        AverageSleepDurationSensor(baby_name, storage, options),
+        AverageFeedingAmountSensor(baby_name, storage, options),
+        DailySummaryDisplaySensor(baby_name, storage, options),
+        WeeklySummaryDisplaySensor(baby_name, storage, options),
+        CurrentTemperatureSensor(baby_name, storage, options),
+        LastBathSensor(baby_name, storage, options),
+        TummyTimeTodaySensor(baby_name, storage, options),
+        SleepQualityScoreSensor(baby_name, storage, options),
+        GrowthPercentileSensor(baby_name, storage, options),
+        NextFeedingPredictionSensor(baby_name, storage, options),
+        MoodAnalysisSensor(baby_name, storage, options),
+        CryingAnalysisSensor(baby_name, storage, options),
+        EnvironmentalConditionsSensor(baby_name, storage, options),
+        CurrentCaregiverSensor(baby_name, storage, options),
+        GrowthVelocitySensor(baby_name, storage, options),
+        SleepRegressionIndicatorSensor(baby_name, storage, options),
+        DiaperChangeFrequencySensor(baby_name, storage, options),
+        FeedingEfficiencySensor(baby_name, storage, options),
     ]
     
     async_add_entities(sensors, True)
@@ -67,10 +78,11 @@ async def async_setup_entry(
 class BabyMonitorSensorBase(SensorEntity, RestoreEntity):
     """Base class for Baby Monitor sensors."""
     
-    def __init__(self, baby_name: str, storage: BabyMonitorStorage) -> None:
+    def __init__(self, baby_name: str, storage: BabyMonitorStorage, options: dict[str, Any]) -> None:
         """Initialize the sensor."""
         self._baby_name = baby_name
         self._storage = storage
+        self._options = options
         self._attr_name = f"{baby_name} {self._sensor_name}"
         self._attr_unique_id = f"{baby_name.lower().replace(' ', '_')}_{self._sensor_id}"
     
@@ -254,10 +266,27 @@ class TotalDiaperChangesSensor(BabyMonitorSensorBase):
         today_changes = self._storage.get_activities_by_date_range(today_start, today_end)
         today_diaper_changes = [a for a in today_changes if a["type"] == ACTIVITY_DIAPER_CHANGE]
         
+        today_count = len(today_diaper_changes)
+        wet_today = len([a for a in today_diaper_changes if a["data"].get("diaper_type") in ["wet", "both"]])
+        dirty_today = len([a for a in today_diaper_changes if a["data"].get("diaper_type") in ["dirty", "both"]])
+        
+        # Get configured thresholds
+        min_diapers = self._options.get(CONF_MIN_DIAPERS_PER_DAY, DEFAULT_MIN_DIAPERS_PER_DAY)
+        min_wet_diapers = self._options.get(CONF_MIN_WET_DIAPERS_PER_DAY, DEFAULT_MIN_WET_DIAPERS_PER_DAY)
+        
+        # Calculate status
+        diaper_status = "Meeting goal" if today_count >= min_diapers else "Below goal"
+        wet_status = "Meeting goal" if wet_today >= min_wet_diapers else "Below goal"
+        
         return {
-            "today_count": len(today_diaper_changes),
-            "wet_today": len([a for a in today_diaper_changes if a["data"].get("diaper_type") in ["wet", "both"]]),
-            "dirty_today": len([a for a in today_diaper_changes if a["data"].get("diaper_type") in ["dirty", "both"]]),
+            "today_count": today_count,
+            "wet_today": wet_today,
+            "dirty_today": dirty_today,
+            "min_diapers_goal": min_diapers,
+            "min_wet_diapers_goal": min_wet_diapers,
+            "diaper_status": diaper_status,
+            "wet_diaper_status": wet_status,
+            "progress_percentage": round((today_count / min_diapers * 100), 0) if min_diapers > 0 else 100,
         }
 
 
@@ -285,12 +314,22 @@ class TotalFeedingsSensor(BabyMonitorSensorBase):
         today_feedings = [a for a in today_activities if a["type"] == ACTIVITY_FEEDING]
         
         total_amount_today = sum(f["data"].get("feeding_amount", 0) for f in today_feedings)
+        today_count = len(today_feedings)
+        
+        # Get configured threshold
+        min_feedings = self._options.get(CONF_MIN_FEEDINGS_PER_DAY, DEFAULT_MIN_FEEDINGS_PER_DAY)
+        
+        # Calculate status
+        feeding_status = "Meeting goal" if today_count >= min_feedings else "Below goal"
         
         return {
-            "today_count": len(today_feedings),
+            "today_count": today_count,
             "total_amount_today_ml": total_amount_today,
             "bottle_feedings_today": len([f for f in today_feedings if f["data"].get("feeding_type") == "bottle"]),
             "breast_feedings_today": len([f for f in today_feedings if "breast" in f["data"].get("feeding_type", "")]),
+            "min_feedings_goal": min_feedings,
+            "feeding_status": feeding_status,
+            "progress_percentage": round((today_count / min_feedings * 100), 0) if min_feedings > 0 else 100,
         }
 
 
@@ -314,6 +353,7 @@ class AverageSleepDurationSensor(BabyMonitorSensorBase):
     _sensor_name = "Average Sleep Duration"
     _sensor_id = "average_sleep_duration"
     _attr_unit_of_measurement = "minutes"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def state(self) -> float:
@@ -328,6 +368,7 @@ class AverageFeedingAmountSensor(BabyMonitorSensorBase):
     _sensor_name = "Average Feeding Amount"
     _sensor_id = "average_feeding_amount"
     _attr_unit_of_measurement = "ml"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def state(self) -> float:
@@ -343,6 +384,7 @@ class CurrentTemperatureSensor(BabyMonitorSensorBase):
     _sensor_id = "current_temperature"
     _attr_unit_of_measurement = "°C"
     _attr_device_class = "temperature"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def state(self) -> float | None:
@@ -541,10 +583,17 @@ class TummyTimeTodaySensor(BabyMonitorSensorBase):
         today_activities = self._storage.get_daily_activities()
         tummy_time_activities = [a for a in today_activities if a["type"] == "tummy_time"]
         
+        # Get configured target
+        target_minutes = self._options.get(CONF_TARGET_TUMMY_TIME_MINUTES, DEFAULT_TARGET_TUMMY_TIME_MINUTES)
+        
+        # Calculate status
+        tummy_time_status = "Meeting goal" if self.native_value >= target_minutes else "Below goal"
+        
         return {
             "sessions_today": len(tummy_time_activities),
-            "recommended_daily_minutes": 15,  # Typical recommendation
-            "progress_percentage": min(100, (self.native_value / 15) * 100) if self.native_value else 0
+            "target_daily_minutes": target_minutes,
+            "progress_percentage": min(100, round((self.native_value / target_minutes) * 100, 0)) if target_minutes > 0 and self.native_value else 0,
+            "tummy_time_status": tummy_time_status,
         }
 
 
@@ -554,6 +603,7 @@ class SleepQualityScoreSensor(BabyMonitorSensorBase):
     _sensor_name = "Sleep Quality Score"
     _sensor_id = "sleep_quality_score"
     _attr_unit_of_measurement = "%"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def native_value(self) -> int:
@@ -630,6 +680,7 @@ class GrowthPercentileSensor(BabyMonitorSensorBase):
     _sensor_name = "Growth Percentile"
     _sensor_id = "growth_percentile"
     _attr_unit_of_measurement = "%"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def native_value(self) -> int | None:
@@ -932,6 +983,7 @@ class GrowthVelocitySensor(BabyMonitorSensorBase):
     _sensor_name = "Growth Velocity"
     _sensor_id = "growth_velocity"
     _attr_unit_of_measurement = "g/day"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def native_value(self) -> float | None:
@@ -1048,6 +1100,7 @@ class DiaperChangeFrequencySensor(BabyMonitorSensorBase):
     _sensor_name = "Diaper Change Frequency"
     _sensor_id = "diaper_change_frequency"
     _attr_unit_of_measurement = "changes/day"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def native_value(self) -> float:
@@ -1085,6 +1138,7 @@ class FeedingEfficiencySensor(BabyMonitorSensorBase):
     _sensor_name = "Feeding Efficiency"
     _sensor_id = "feeding_efficiency"
     _attr_unit_of_measurement = "ml/min"
+    _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
     def native_value(self) -> float | None:

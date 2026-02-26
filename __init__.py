@@ -39,15 +39,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store data for platforms to access
     hass.data[DOMAIN][entry.entry_id] = {
         "storage": storage,
-        "baby_name": baby_name
+        "baby_name": baby_name,
+        "options": entry.options,
     }
     
     # Set up services (only once)
     if len(hass.data[DOMAIN]) == 1:
         await async_setup_services(hass)
     
+    # Register update listener for options changes
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
