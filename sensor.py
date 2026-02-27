@@ -64,6 +64,7 @@ async def async_setup_entry(
         NextFeedingPredictionSensor(baby_name, storage, options),
         MoodAnalysisSensor(baby_name, storage, options),
         CryingAnalysisSensor(baby_name, storage, options),
+        TotalCryingEpisodesToday(baby_name, storage, options),
         EnvironmentalConditionsSensor(baby_name, storage, options),
         CurrentCaregiverSensor(baby_name, storage, options),
         GrowthVelocitySensor(baby_name, storage, options),
@@ -880,6 +881,43 @@ class CryingAnalysisSensor(BabyMonitorSensorBase):
         
         return {
             "episodes_today": len(today_crying),
+            "total_duration_minutes": total_duration,
+            "average_episode_duration": round(total_duration / len(today_crying), 1) if today_crying else 0,
+            "intensity_breakdown": intensity_counts,
+            "last_episode": today_crying[-1]["timestamp"] if today_crying else None
+        }
+
+
+class TotalCryingEpisodesToday(BabyMonitorSensorBase):
+    """Sensor for total crying episodes count today."""
+    
+    _sensor_name = "Total Crying Episodes"
+    _sensor_id = "total_crying_episodes"
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_icon = "mdi:emoticon-sad-outline"
+    
+    @property
+    def native_value(self) -> int:
+        """Return the total number of crying episodes today."""
+        today_crying = [a for a in self._storage.get_daily_activities() if a["type"] == "crying"]
+        return len(today_crying)
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional state attributes."""
+        today_crying = [a for a in self._storage.get_daily_activities() if a["type"] == "crying"]
+        
+        if not today_crying:
+            return {"status": "No crying episodes today"}
+        
+        total_duration = sum(a["data"].get("duration", 0) for a in today_crying)
+        intensities = [a["data"].get("crying_intensity", "moderate") for a in today_crying]
+        intensity_counts = {}
+        
+        for intensity in intensities:
+            intensity_counts[intensity] = intensity_counts.get(intensity, 0) + 1
+        
+        return {
             "total_duration_minutes": total_duration,
             "average_episode_duration": round(total_duration / len(today_crying), 1) if today_crying else 0,
             "intensity_breakdown": intensity_counts,

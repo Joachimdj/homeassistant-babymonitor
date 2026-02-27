@@ -339,6 +339,145 @@ content: |
 
 ---
 
+# CRYING OPTION 3: Simple Cry Count
+type: entities
+title: 😢 Cries Today
+entities:
+  - entity: sensor.anika_total_crying_episodes
+    name: Total Cries
+    icon: mdi:emoticon-sad-outline
+  - entity: sensor.anika_total_crying_episodes
+    name: Duration
+    type: attribute
+    attribute: total_duration_minutes
+    icon: mdi:clock
+  - entity: sensor.anika_total_crying_episodes
+    name: Average Time
+    type: attribute
+    attribute: average_episode_duration
+    icon: mdi:timer-outline
+
+---
+
+# CRYING OPTION 4: Big Cry Counter
+type: custom:button-card
+entity: sensor.anika_total_crying_episodes
+name: Total Cries Today
+icon: mdi:emoticon-sad-outline
+state_display: "{{ states('sensor.anika_total_crying_episodes') }} times 😢"
+styles:
+  card:
+    - font-size: 20px
+    - padding: 20px
+
+---
+
+# CRYING OPTION 5: Cry Count with Gauge
+type: vertical-stack
+cards:
+  - type: gauge
+    entity: sensor.anika_total_crying_episodes
+    title: Cries Today
+    min: 0
+    max: 20
+    unit: times
+    segments:
+      - from: 0
+        color: "#00ff00"
+      - from: 5
+        color: "#ffff00"
+      - from: 10
+        color: "#ff8800"
+      - from: 15
+        color: "#ff0000"
+
+  - type: entities
+    entities:
+      - entity: sensor.anika_total_crying_episodes
+        name: Duration
+        type: attribute
+        attribute: total_duration_minutes
+      - entity: sensor.anika_total_crying_episodes
+        name: Last Cry
+        type: attribute
+        attribute: last_episode
+
+---
+
+# CRYING OPTION 6: Cry History Graph
+type: history-graph
+title: 😢 Crying History (24h)
+entities:
+  - entity: sensor.anika_total_crying_episodes
+    name: Cry Count
+hours_to_show: 24
+refresh_interval: 0
+
+---
+
+# CRYING OPTION 7: Cry Statistics (7 Days)
+type: statistics-graph
+title: 😢 Crying Trends (7 Days)
+entities:
+  - sensor.anika_total_crying_episodes
+stat_types:
+  - mean
+  - min
+  - max
+period:
+  calendar:
+    period: day
+days_to_show: 7
+
+---
+
+# CRYING OPTION 8: Complete Crying Dashboard
+type: vertical-stack
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.anika_total_crying_episodes
+        title: Cries
+        min: 0
+        max: 20
+        unit: times
+        segments:
+          - from: 0
+            color: "#00ff00"
+          - from: 5
+            color: "#ffff00"
+          - from: 10
+            color: "#ff8800"
+          - from: 15
+            color: "#ff0000"
+
+      - type: entities
+        entities:
+          - entity: sensor.anika_total_crying_episodes
+            name: Count
+          - entity: sensor.anika_total_crying_episodes
+            name: Total Time
+            type: attribute
+            attribute: total_duration_minutes
+          - entity: sensor.anika_total_crying_episodes
+            name: Average
+            type: attribute
+            attribute: average_episode_duration
+
+  - type: history-graph
+    title: Crying History
+    entities:
+      - entity: sensor.anika_total_crying_episodes
+    hours_to_show: 24
+
+  - type: button
+    entity: button.anika_quick_crying
+    name: Log Crying Episode
+    icon: mdi:emoticon-sad
+
+---
+
 ################################################################################
 # QUICK ACTIONS - One-Tap Buttons
 ################################################################################
@@ -486,19 +625,31 @@ cards:
 # 4. Available sensor entities:
 #    - sensor.{baby_name}_total_diaper_changes
 #    - sensor.{baby_name}_current_temperature (with long-term statistics)
-#    - sensor.{baby_name}_crying_analysis
+#    - sensor.{baby_name}_crying_analysis (status text + attributes)
+#    - sensor.{baby_name}_total_crying_episodes (numeric count with statistics)
 #    - sensor.{baby_name}_total_feedings
 #    - sensor.{baby_name}_tummy_time_today
 #    - And many more...
 #
-# 5. To add temperature logging buttons, replace temperature values:
+# 5. CRYING EPISODE COUNTER:
+#    Use sensor.{baby_name}_total_crying_episodes to track:
+#    - Total cry count today (main state)
+#    - Total duration in minutes (attribute)
+#    - Average episode length (attribute)
+#    - Last crying timestamp (attribute)
+#    - Intensity breakdown (attribute)
+#    
+#    This sensor supports long-term statistics and history graphs!
+#    See CRYING OPTION 3-8 for dashboard examples.
+#
+# 6. To add temperature logging buttons, replace temperature values:
 #    temperature: 37.5 (change this to your desired value)
 #
-# 6. STATISTICS & HISTORY FEATURES:
-#    The temperature sensor tracks long-term statistics automatically!
+# 7. STATISTICS & HISTORY FEATURES:
+#    Both temperature and crying sensors track long-term statistics automatically!
 #    
 #    Available graph types:
-#    - history-graph: Shows raw temperature readings over time
+#    - history-graph: Shows raw readings over time
 #    - statistics-graph: Shows daily average, min, max trends
 #    - statistic card: Shows average/mean for a period
 #    
@@ -507,11 +658,11 @@ cards:
 #    - days_to_show: 7 (last 7 days)
 #    - period: day/week/month
 #    
-#    Use TEMPERATURE OPTION 4, 5, or 6 for historical data visualization!
+#    Use TEMPERATURE OPTION 4-6 or CRYING OPTION 6-8 for historical data!
 #
-# 7. TROUBLESHOOTING - Button doesn't update display:
+# 8. TROUBLESHOOTING - Button doesn't update display:
 #    - Restart Home Assistant (Settings → System → Restart)
 #    - Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
 #    - Wait 5-10 seconds after clicking button for update
-#    - Check Developer Tools → States for sensor.{baby_name}_current_temperature
-#    - Verify entity exists and shows correct value
+#    - Check Developer Tools → States for sensor entities
+#    - Verify entities exist and show correct values
