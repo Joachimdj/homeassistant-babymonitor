@@ -76,6 +76,47 @@ content: |
 
 ---
 
+# OPTION 5: Temperature Card
+type: entities
+title: Temperature
+entities:
+  - entity: sensor.anika_current_temperature
+    name: Current Temperature
+    type: attribute
+    attribute: last_recorded
+  - entity: sensor.anika_current_temperature
+    name: Temperature Value
+    type: attribute
+    attribute: state
+  - entity: sensor.anika_current_temperature
+    name: Time Recorded
+    type: attribute
+    attribute: time_ago
+
+---
+
+# OPTION 6: Temperature Gauge Card
+type: gauge
+entity: sensor.anika_current_temperature
+title: Baby Temperature
+min: 35
+max: 40
+unit: °C
+segments:
+  - from: 35
+    color: "#0000ff"
+  - from: 36.5
+    color: "#00ff00"
+  - from: 37.5
+    color: "#ffff00"
+  - from: 38
+    color: "#ff8800"
+  - from: 39
+    color: "#ff0000"
+
+---
+
 # IMPORTANT: Replace "anika" with your baby's name (lowercase)
 # For example, if your baby is named "Emma", use:
 # sensor.emma_total_diaper_changes
+# sensor.emma_current_temperature

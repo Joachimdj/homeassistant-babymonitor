@@ -57,6 +57,7 @@ async def async_setup_entry(
         QuickHappyMoodButton(baby_name, storage),
         QuickCalmMoodButton(baby_name, storage),
         QuickCryingButton(baby_name, storage),
+        QuickTemperatureButton(baby_name, storage),
         LogCaregiverButton(baby_name, storage),
     ]
     
@@ -367,6 +368,25 @@ class QuickCryingButton(BabyMonitorButtonBase):
                 "crying_intensity": "moderate",
                 "duration": 0,  # Will be updated when crying ends
                 "notes": "Crying episode started"
+            }
+        )
+        await self._trigger_sensor_updates()
+
+
+class QuickTemperatureButton(BabyMonitorButtonBase):
+    """Button for logging temperature."""
+    
+    _button_name = "Log Temperature"
+    _button_id = "quick_temperature"
+    
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        # Log normal body temperature as default
+        await self._storage.async_add_activity(
+            "temperature",
+            {
+                "temperature": 37.0,
+                "notes": "Anal thermometer"
             }
         )
         await self._trigger_sensor_updates()
