@@ -27,6 +27,19 @@
 
 **That's it!** No helper entities or automations required. Everything works out of the box.
 
+### Quick Dashboard Card
+
+Add this card to see today's total crying episodes:
+
+```yaml
+type: entity
+entity: sensor.anika_total_crying_episodes
+name: Today's Total Cries
+icon: mdi:emoticon-sad-outline
+```
+
+**Want more display options?** See [Today's Total Cries Cards](TODAYS_TOTAL_CRIES_CARDS.md) for 8+ dashboard card styles.
+
 ---
 
 ## Manual Automation Setup (Alternative)

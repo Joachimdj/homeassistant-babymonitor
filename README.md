@@ -533,6 +533,72 @@ period: day
 days_to_show: 7
 ```
 
+## Development & Testing
+
+### Running Tests
+
+This project includes comprehensive unit tests with automatic pre-push testing to ensure code quality.
+
+**Run all tests:**
+```bash
+./run_tests.sh
+```
+
+This will:
+- Create a virtual environment if needed
+- Install test dependencies
+- Run all tests with coverage reporting
+- Generate a coverage report in `htmlcov/`
+
+**Run specific tests:**
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Run specific test file
+pytest tests/test_storage.py
+
+# Run with verbose output
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ --cov=custom_components/babymonitor --cov-report=html
+```
+
+### Automatic Pre-Push Testing
+
+Tests run automatically before every `git push`. The pre-push hook is installed at `.git/hooks/pre-push`.
+
+When you push:
+- ✅ Tests pass → Push proceeds
+- ❌ Tests fail → Push is blocked
+
+To skip pre-push checks (not recommended):
+```bash
+git push --no-verify
+```
+
+### Test Coverage
+
+The test suite covers:
+- ✅ Storage functionality (add/retrieve activities)
+- ✅ Camera crying detection and tracking
+- ✅ Sensor state calculations and attributes
+- ✅ Daily activity filtering
+- ✅ Duration calculations
+- ✅ Error handling
+
+For detailed testing documentation, see [tests/README.md](tests/README.md).
+
+### Contributing
+
+When contributing:
+1. Write tests for new features
+2. Ensure all tests pass before committing
+3. Maintain test coverage above 80%
+4. Follow existing code style
+5. Update documentation as needed
+
 ## Support
 
 For issues, feature requests, or questions, please visit the GitHub repository.
@@ -541,8 +607,12 @@ For issues, feature requests, or questions, please visit the GitHub repository.
 
 - [Lovelace Dashboard Examples](docs/lovelace_examples.yaml) - Complete dashboard configurations
 - [Simple Diaper Card Example](docs/simple_diaper_card_example.yaml) - Ready-to-use diaper tracking card
+- [Today's Total Cries Cards](docs/TODAYS_TOTAL_CRIES_CARDS.md) - 8+ dashboard card styles for crying statistics
+- [Camera Auto-Tracking Setup](docs/CAMERA_AUTO_TRACKING_SETUP.md) - Easy 3-step camera crying detection setup
+- [Camera Crying Automation](docs/CAMERA_CRYING_AUTOMATION.md) - Advanced automation examples with notifications
 - [Example Automations](docs/example_automations.yaml) - Ready-to-use automation examples
 - [Installation Guide](docs/GITHUB_SETUP.md) - Detailed setup instructions
+- [Testing Guide](tests/README.md) - Comprehensive testing documentation
 
 ## Troubleshooting
 
