@@ -526,7 +526,7 @@ async def _get_storage_for_baby(hass: HomeAssistant, baby_name: str):
     for entry_id, data in hass.data.get(DOMAIN, {}).items():
         if "storage" in data:
             storage = data["storage"]
-            if storage._baby_name == baby_name:
+            if storage.baby_name == baby_name:
                 return storage
     return None
 
