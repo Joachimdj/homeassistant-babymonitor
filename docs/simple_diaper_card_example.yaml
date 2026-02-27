@@ -1,8 +1,12 @@
-# Simple Dashboard Card to Show Today's Diaper Counts
-# Copy this entire card into your Lovelace dashboard
-# The counts will automatically update when you log diaper changes via buttons or services!
+# Baby Monitor Dashboard Cards - Complete Collection
+# Copy any card into your Lovelace dashboard
+# Replace "anika" with your baby's name (lowercase)
 
-# OPTION 1: Simple List (Recommended)
+################################################################################
+# DIAPERS - Daily Tracking
+################################################################################
+
+# DIAPER OPTION 1: Simple List (Recommended)
 type: entities
 title: Today's Diapers
 entities:
@@ -21,7 +25,7 @@ entities:
 
 ---
 
-# OPTION 2: With Icons
+# DIAPER OPTION 2: With Icons
 type: entities
 title: 💩 Today's Diaper Changes
 show_header_toggle: false
@@ -44,7 +48,7 @@ entities:
 
 ---
 
-# OPTION 3: Glance Card (Visual Overview)
+# DIAPER OPTION 3: Glance Card (Visual Overview)
 type: glance
 title: Diaper Stats
 columns: 3
@@ -63,7 +67,7 @@ entities:
 
 ---
 
-# OPTION 4: Markdown Card with Text
+# DIAPER OPTION 4: Markdown Card with Text
 type: markdown
 content: |
   ### 🍼 Today's Diaper Report
@@ -76,47 +80,115 @@ content: |
 
 ---
 
-# OPTION 5: Temperature Card
+################################################################################
+# TEMPERATURE - Logging & Display
+################################################################################
+
+# TEMPERATURE OPTION 1: Quick Buttons for Common Values
+type: horizontal-stack
+cards:
+  - type: button
+    name: 36.5°C
+    icon: mdi:thermometer-low
+    tap_action:
+      action: call-service
+      service: babymonitor.log_temperature
+      service_data:
+        baby_name: Anika
+        temperature: 36.5
+        notes: Anal thermometer
+
+  - type: button
+    name: 37.0°C
+    icon: mdi:thermometer
+    tap_action:
+      action: call-service
+      service: babymonitor.log_temperature
+      service_data:
+        baby_name: Anika
+        temperature: 37.0
+        notes: Anal thermometer
+
+  - type: button
+    name: 37.5°C
+    icon: mdi:thermometer
+    tap_action:
+      action: call-service
+      service: babymonitor.log_temperature
+      service_data:
+        baby_name: Anika
+        temperature: 37.5
+        notes: Anal thermometer
+
+  - type: button
+    name: 38.0°C
+    icon: mdi:thermometer-high
+    tap_action:
+      action: call-service
+      service: babymonitor.log_temperature
+      service_data:
+        baby_name: Anika
+        temperature: 38.0
+        notes: Anal thermometer
+
+---
+
+# TEMPERATURE OPTION 2: Display Current with Gauge
+type: vertical-stack
+cards:
+  - type: gauge
+    entity: sensor.anika_current_temperature
+    title: Baby Temperature
+    min: 35
+    max: 40
+    unit: °C
+    segments:
+      - from: 35
+        color: "#0000ff"
+      - from: 36.5
+        color: "#00ff00"
+      - from: 37.5
+        color: "#ffff00"
+      - from: 38
+        color: "#ff8800"
+      - from: 39
+        color: "#ff0000"
+
+  - type: entities
+    entities:
+      - entity: sensor.anika_current_temperature
+        name: Last Recorded
+        type: attribute
+        attribute: time_ago
+
+---
+
+# TEMPERATURE OPTION 3: Detailed Info Card
 type: entities
-title: Temperature
+title: 🌡️ Temperature Details
 entities:
   - entity: sensor.anika_current_temperature
     name: Current Temperature
+  - entity: sensor.anika_current_temperature
+    name: Last Recorded
     type: attribute
     attribute: last_recorded
   - entity: sensor.anika_current_temperature
-    name: Temperature Value
-    type: attribute
-    attribute: state
-  - entity: sensor.anika_current_temperature
-    name: Time Recorded
+    name: Time Ago
     type: attribute
     attribute: time_ago
+  - entity: sensor.anika_current_temperature
+    name: Notes
+    type: attribute
+    attribute: notes
 
 ---
 
-# OPTION 6: Temperature Gauge Card
-type: gauge
-entity: sensor.anika_current_temperature
-title: Baby Temperature
-min: 35
-max: 40
-unit: °C
-segments:
-  - from: 35
-    color: "#0000ff"
-  - from: 36.5
-    color: "#00ff00"
-  - from: 37.5
-    color: "#ffff00"
-  - from: 38
-    color: "#ff8800"
-  - from: 39
-    color: "#ff0000"
+################################################################################
+# CRYING - Emotional Tracking
+################################################################################
 
----
-
-# OPTION 7: Crying Times Today
+# CRYING OPTION 1: Detailed Analysis
 type: entities
 title: 😢 Crying Today
 entities:
@@ -126,6 +198,7 @@ entities:
     name: Episodes Today
     type: attribute
     attribute: episodes_today
+    icon: mdi:counter
   - entity: sensor.anika_crying_analysis
     name: Total Duration
     type: attribute
@@ -136,14 +209,10 @@ entities:
     type: attribute
     attribute: average_episode_duration
     icon: mdi:timer-outline
-  - entity: sensor.anika_crying_analysis
-    name: Intensity Breakdown
-    type: attribute
-    attribute: intensity_breakdown
 
 ---
 
-# OPTION 8: Crying Summary Card
+# CRYING OPTION 2: Markdown Summary
 type: markdown
 content: |
   ### 😢 Crying Summary Today
@@ -154,17 +223,161 @@ content: |
   
   **Total Duration:** {{ state_attr('sensor.anika_crying_analysis', 'total_duration_minutes') }} minutes
   
-  **Average Episode:** {{ state_attr('sensor.anika_crying_analysis', 'average_episode_duration') }} minutes
-  
-  **Intensity:**
-  - Light: {{ state_attr('sensor.anika_crying_analysis', 'intensity_breakdown').get('light', 0) }}
-  - Moderate: {{ state_attr('sensor.anika_crying_analysis', 'intensity_breakdown').get('moderate', 0) }}
-  - Intense: {{ state_attr('sensor.anika_crying_analysis', 'intensity_breakdown').get('intense', 0) }}
+  **Average per Episode:** {{ state_attr('sensor.anika_crying_analysis', 'average_episode_duration') }} min
 
 ---
 
-# IMPORTANT: Replace "anika" with your baby's name (lowercase)
-# For example, if your baby is named "Emma", use:
-# sensor.emma_total_diaper_changes
-# sensor.emma_current_temperature
-# sensor.emma_crying_analysis
+################################################################################
+# QUICK ACTIONS - One-Tap Buttons
+################################################################################
+
+# QUICK ACTIONS OPTION 1: All Quick Buttons
+type: vertical-stack
+title: Quick Actions
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: button
+        entity: button.anika_quick_diaper_wet
+        name: Wet
+        icon: mdi:water
+
+      - type: button
+        entity: button.anika_quick_diaper_dirty
+        name: Dirty
+        icon: mdi:delete-variant
+
+      - type: button
+        entity: button.anika_quick_diaper_both
+        name: Both
+        icon: mdi:water-alert
+
+  - type: horizontal-stack
+    cards:
+      - type: button
+        entity: button.anika_quick_feeding_bottle
+        name: Bottle
+        icon: mdi:bottle-tonic
+
+      - type: button
+        entity: button.anika_quick_sleep_start
+        name: Sleep Start
+        icon: mdi:bed
+
+      - type: button
+        entity: button.anika_quick_sleep_end
+        name: Sleep End
+        icon: mdi:bed-empty
+
+  - type: horizontal-stack
+    cards:
+      - type: button
+        entity: button.anika_quick_bath
+        name: Bath
+        icon: mdi:bathtub
+
+      - type: button
+        entity: button.anika_quick_tummy_time
+        name: Tummy Time
+        icon: mdi:dot-circle
+
+      - type: button
+        entity: button.anika_quick_temperature
+        name: Temperature
+        icon: mdi:thermometer
+
+---
+
+################################################################################
+# COMBINED VIEW - Everything at a Glance
+################################################################################
+
+# COMBINED OPTION: Full Baby Dashboard
+type: vertical-stack
+cards:
+  - type: markdown
+    content: |
+      # 👶 Anika Monitor
+      Last updated: {{ now().strftime('%H:%M') }}
+
+  - type: horizontal-stack
+    cards:
+      - type: glance
+        entities:
+          - entity: sensor.anika_total_diaper_changes
+            name: Diapers
+            attribute: today_count
+          - entity: sensor.anika_crying_analysis
+            name: Crying
+            attribute: episodes_today
+
+      - type: gauge
+        entity: sensor.anika_current_temperature
+        title: Temperature
+        min: 35
+        max: 40
+        unit: °C
+
+  - type: horizontal-stack
+    cards:
+      - type: button
+        entity: button.anika_quick_diaper_wet
+        name: Wet 💧
+
+      - type: button
+        entity: button.anika_quick_diaper_dirty
+        name: Dirty 💩
+
+      - type: button
+        entity: button.anika_quick_feeding_bottle
+        name: Bottle 🍼
+
+      - type: button
+        entity: button.anika_quick_temperature
+        name: Temp 🌡️
+
+---
+
+################################################################################
+# COLOR TEMPERATURE GUIDE
+################################################################################
+
+# Note: Temperature colors in gauge cards
+# Blue (35-36.5°C) = Cool/Hypothermia
+# Green (36.5-37.5°C) = Normal/Healthy
+# Yellow (37.5-38°C) = Warm/Slightly Elevated
+# Orange (38-39°C) = Fever/Elevated
+# Red (39-40°C) = High Fever/Medical Attention Needed
+
+################################################################################
+# SETUP INSTRUCTIONS
+################################################################################
+
+# 1. Replace all instances of "anika" with your baby's name (lowercase)
+#    Example: For baby "Emma" use "sensor.emma_total_diaper_changes"
+#
+# 2. For buttons, use format: button.{baby_name}_{button_id}
+#    Examples:
+#    - button.anika_quick_diaper_wet
+#    - button.anika_quick_feeding_bottle
+#    - button.anika_quick_temperature
+#
+# 3. Available button entities:
+#    - Quick Diaper: quick_diaper_wet, quick_diaper_dirty, quick_diaper_both
+#    - Quick Feeding: quick_feeding_bottle, quick_feeding_breast_left, 
+#                      quick_feeding_breast_right, quick_feeding_breast_both
+#    - Quick Sleep: quick_sleep_start, quick_sleep_end
+#    - Quick Health: quick_bath, quick_tummy_time, quick_temperature
+#    - Quick Mood: quick_happy_mood, quick_calm_mood
+#    - Quick Other: quick_crying, switch_caregiver
+#
+# 4. Available sensor entities:
+#    - sensor.{baby_name}_total_diaper_changes
+#    - sensor.{baby_name}_current_temperature
+#    - sensor.{baby_name}_crying_analysis
+#    - sensor.{baby_name}_total_feedings
+#    - sensor.{baby_name}_tummy_time_today
+#    - And many more...
+#
+# 5. To add temperature logging buttons, replace temperature values:
+#    temperature: 37.5 (change this to your desired value)
