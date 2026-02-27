@@ -184,6 +184,118 @@ entities:
 
 ---
 
+# TEMPERATURE OPTION 4: History Graph (24 Hours)
+type: history-graph
+title: 🌡️ Temperature History (24h)
+entities:
+  - entity: sensor.anika_current_temperature
+    name: Temperature
+hours_to_show: 24
+refresh_interval: 0
+
+---
+
+# TEMPERATURE OPTION 5: Statistics Graph (7 Days)
+type: statistics-graph
+title: 🌡️ Temperature Trends (7 Days)
+entities:
+  - sensor.anika_current_temperature
+stat_types:
+  - mean
+  - min
+  - max
+period:
+  calendar:
+    period: day
+days_to_show: 7
+
+---
+
+# TEMPERATURE OPTION 6: Complete Temperature Dashboard
+type: vertical-stack
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.anika_current_temperature
+        title: Current
+        min: 35
+        max: 40
+        unit: °C
+        segments:
+          - from: 35
+            color: "#0000ff"
+          - from: 36.5
+            color: "#00ff00"
+          - from: 37.5
+            color: "#ffff00"
+          - from: 38
+            color: "#ff8800"
+          - from: 39
+            color: "#ff0000"
+
+      - type: statistic
+        entity: sensor.anika_current_temperature
+        name: Today Avg
+        stat_type: mean
+        period:
+          calendar:
+            period: day
+
+  - type: history-graph
+    title: Temperature History
+    entities:
+      - entity: sensor.anika_current_temperature
+    hours_to_show: 24
+
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: 36.5°C
+        icon: mdi:thermometer-low
+        tap_action:
+          action: call-service
+          service: babymonitor.log_temperature
+          service_data:
+            baby_name: Anika
+            temperature: 36.5
+            notes: Anal thermometer
+
+      - type: button
+        name: 37.0°C
+        icon: mdi:thermometer
+        tap_action:
+          action: call-service
+          service: babymonitor.log_temperature
+          service_data:
+            baby_name: Anika
+            temperature: 37.0
+            notes: Anal thermometer
+
+      - type: button
+        name: 37.5°C
+        icon: mdi:thermometer
+        tap_action:
+          action: call-service
+          service: babymonitor.log_temperature
+          service_data:
+            baby_name: Anika
+            temperature: 37.5
+            notes: Anal thermometer
+
+      - type: button
+        name: 38.0°C
+        icon: mdi:thermometer-high
+        tap_action:
+          action: call-service
+          service: babymonitor.log_temperature
+          service_data:
+            baby_name: Anika
+            temperature: 38.0
+            notes: Anal thermometer
+
+---
+
 ################################################################################
 # CRYING - Emotional Tracking
 ################################################################################
@@ -373,7 +485,7 @@ cards:
 #
 # 4. Available sensor entities:
 #    - sensor.{baby_name}_total_diaper_changes
-#    - sensor.{baby_name}_current_temperature
+#    - sensor.{baby_name}_current_temperature (with long-term statistics)
 #    - sensor.{baby_name}_crying_analysis
 #    - sensor.{baby_name}_total_feedings
 #    - sensor.{baby_name}_tummy_time_today
@@ -381,3 +493,25 @@ cards:
 #
 # 5. To add temperature logging buttons, replace temperature values:
 #    temperature: 37.5 (change this to your desired value)
+#
+# 6. STATISTICS & HISTORY FEATURES:
+#    The temperature sensor tracks long-term statistics automatically!
+#    
+#    Available graph types:
+#    - history-graph: Shows raw temperature readings over time
+#    - statistics-graph: Shows daily average, min, max trends
+#    - statistic card: Shows average/mean for a period
+#    
+#    Timeline options:
+#    - hours_to_show: 24 (last 24 hours)
+#    - days_to_show: 7 (last 7 days)
+#    - period: day/week/month
+#    
+#    Use TEMPERATURE OPTION 4, 5, or 6 for historical data visualization!
+#
+# 7. TROUBLESHOOTING - Button doesn't update display:
+#    - Restart Home Assistant (Settings → System → Restart)
+#    - Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+#    - Wait 5-10 seconds after clicking button for update
+#    - Check Developer Tools → States for sensor.{baby_name}_current_temperature
+#    - Verify entity exists and shows correct value

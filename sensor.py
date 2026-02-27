@@ -387,7 +387,7 @@ class CurrentTemperatureSensor(BabyMonitorSensorBase):
     _attr_state_class = SensorStateClass.MEASUREMENT
     
     @property
-    def state(self) -> float | None:
+    def native_value(self) -> float | None:
         """Return the state of the sensor."""
         activities = self._storage.get_activities_by_type(ACTIVITY_TEMPERATURE, limit=1)
         if activities:
