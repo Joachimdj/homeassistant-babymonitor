@@ -116,7 +116,55 @@ segments:
 
 ---
 
+# OPTION 7: Crying Times Today
+type: entities
+title: 😢 Crying Today
+entities:
+  - entity: sensor.anika_crying_analysis
+    name: Crying Status
+  - entity: sensor.anika_crying_analysis
+    name: Episodes Today
+    type: attribute
+    attribute: episodes_today
+  - entity: sensor.anika_crying_analysis
+    name: Total Duration
+    type: attribute
+    attribute: total_duration_minutes
+    icon: mdi:clock
+  - entity: sensor.anika_crying_analysis
+    name: Average Episode
+    type: attribute
+    attribute: average_episode_duration
+    icon: mdi:timer-outline
+  - entity: sensor.anika_crying_analysis
+    name: Intensity Breakdown
+    type: attribute
+    attribute: intensity_breakdown
+
+---
+
+# OPTION 8: Crying Summary Card
+type: markdown
+content: |
+  ### 😢 Crying Summary Today
+  
+  **Status:** {{ states('sensor.anika_crying_analysis') }}
+  
+  **Episodes:** {{ state_attr('sensor.anika_crying_analysis', 'episodes_today') }} times
+  
+  **Total Duration:** {{ state_attr('sensor.anika_crying_analysis', 'total_duration_minutes') }} minutes
+  
+  **Average Episode:** {{ state_attr('sensor.anika_crying_analysis', 'average_episode_duration') }} minutes
+  
+  **Intensity:**
+  - Light: {{ state_attr('sensor.anika_crying_analysis', 'intensity_breakdown').get('light', 0) }}
+  - Moderate: {{ state_attr('sensor.anika_crying_analysis', 'intensity_breakdown').get('moderate', 0) }}
+  - Intense: {{ state_attr('sensor.anika_crying_analysis', 'intensity_breakdown').get('intense', 0) }}
+
+---
+
 # IMPORTANT: Replace "anika" with your baby's name (lowercase)
 # For example, if your baby is named "Emma", use:
 # sensor.emma_total_diaper_changes
 # sensor.emma_current_temperature
+# sensor.emma_crying_analysis
