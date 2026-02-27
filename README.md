@@ -18,6 +18,14 @@ A comprehensive Home Assistant integration for monitoring and tracking baby care
 - Pre-configured with reasonable defaults
 - Perfect for quick logging during busy times
 
+### 🎥 Camera Auto-Tracking (NEW!)
+- **Automatic crying detection** from camera sensors
+- No manual logging needed - works hands-free
+- Auto-calculates crying episode duration
+- Real-time sensor updates
+- Simple 3-step setup in integration settings
+- Works with any Home Assistant-compatible baby camera
+
 ### Comprehensive Sensors
 - **Last Activity Sensors**: Show when activities last occurred with time elapsed
 - **Total Counters**: Track total counts of all activities

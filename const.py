@@ -102,6 +102,8 @@ CONF_MIN_SLEEP_HOURS_PER_DAY = "min_sleep_hours_per_day"
 CONF_TARGET_TUMMY_TIME_MINUTES = "target_tummy_time_minutes"
 CONF_FEEDING_REMINDER_HOURS = "feeding_reminder_hours"
 CONF_DIAPER_REMINDER_HOURS = "diaper_reminder_hours"
+CONF_CAMERA_CRYING_ENTITY = "camera_crying_entity"
+CONF_CAMERA_AUTO_TRACKING = "camera_auto_tracking"
 
 # Default values for configuration options
 DEFAULT_MIN_DIAPERS_PER_DAY = 6
@@ -111,3 +113,6 @@ DEFAULT_MIN_SLEEP_HOURS_PER_DAY = 12
 DEFAULT_TARGET_TUMMY_TIME_MINUTES = 15
 DEFAULT_FEEDING_REMINDER_HOURS = 3
 DEFAULT_DIAPER_REMINDER_HOURS = 4
+
+# Camera tracking
+CAMERA_TRACKING_HELPER_PREFIX = "baby_crying_tracker"

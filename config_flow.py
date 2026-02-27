@@ -22,6 +22,8 @@ from .const import (
     CONF_TARGET_TUMMY_TIME_MINUTES,
     CONF_FEEDING_REMINDER_HOURS,
     CONF_DIAPER_REMINDER_HOURS,
+    CONF_CAMERA_CRYING_ENTITY,
+    CONF_CAMERA_AUTO_TRACKING,
     DEFAULT_MIN_DIAPERS_PER_DAY,
     DEFAULT_MIN_WET_DIAPERS_PER_DAY,
     DEFAULT_MIN_FEEDINGS_PER_DAY,
@@ -70,6 +72,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_TARGET_TUMMY_TIME_MINUTES: DEFAULT_TARGET_TUMMY_TIME_MINUTES,
                         CONF_FEEDING_REMINDER_HOURS: DEFAULT_FEEDING_REMINDER_HOURS,
                         CONF_DIAPER_REMINDER_HOURS: DEFAULT_DIAPER_REMINDER_HOURS,
+                        CONF_CAMERA_CRYING_ENTITY: "",
+                        CONF_CAMERA_AUTO_TRACKING: False,
                     }
                 )
             except CannotConnect:
@@ -141,6 +145,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_DIAPER_REMINDER_HOURS,
                     default=options.get(CONF_DIAPER_REMINDER_HOURS, DEFAULT_DIAPER_REMINDER_HOURS),
                 ): vol.All(vol.Coerce(int), vol.Range(min=1, max=12)),
+                vol.Optional(
+                    CONF_CAMERA_AUTO_TRACKING,
+                    default=options.get(CONF_CAMERA_AUTO_TRACKING, False),
+                ): bool,
+                vol.Optional(
+                    CONF_CAMERA_CRYING_ENTITY,
+                    default=options.get(CONF_CAMERA_CRYING_ENTITY, ""),
+                ): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="binary_sensor")
+                ),
             }
         )
 
